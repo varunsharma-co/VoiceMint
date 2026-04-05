@@ -18,3 +18,4 @@ Text Injection Method Testing/
 ai_docs/*
 !ai_docs/tasks/
 !ai_docs/dev_templates/
+__pycache__/
