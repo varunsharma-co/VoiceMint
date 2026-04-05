@@ -1,8 +1,9 @@
-GEMINI.MD
+
 voicemint/
-python_task_template_VM.MD
-Single_Source_of_Truth.MD
-python-agent.MD
+
+GEMINI.md
+
+Single_Source_of_Truth.md
 
 .env
 
@@ -10,3 +11,10 @@ Template Breakdowns/
 Text Injection Method Testing/
 
 .gitignore
+.aiexclude
+.geminiignore
+
+.gemini/*
+ai_docs/*
+!ai_docs/tasks/
+!ai_docs/dev_templates/
