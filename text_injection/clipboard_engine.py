@@ -1,5 +1,7 @@
 import time
 import pyperclip
+import subprocess
+import shutil
 from evdev import UInput
 from evdev import ecodes as e
 
@@ -45,6 +47,41 @@ class ClipboardInjector(BaseInjector):
         # Includes standard and Hindi terminal punctuation
         return text[-1] in [".", "?", "!", "।"]
 
+    def _get_primary_selection(self) -> str:
+        """Fetches the current X11/Wayland PRIMARY selection."""
+        import os
+        is_wayland = os.environ.get("WAYLAND_DISPLAY") is not None
+        try:
+            if is_wayland and shutil.which("wl-paste"):
+                result = subprocess.run(["wl-paste", "--primary"], capture_output=True, text=True)
+                return result.stdout if result.returncode == 0 else ""
+            if shutil.which("xclip"):
+                result = subprocess.run(["xclip", "-selection", "primary", "-o"], capture_output=True, text=True)
+                return result.stdout if result.returncode == 0 else ""
+            if shutil.which("xsel"):
+                result = subprocess.run(["xsel", "--primary", "--output"], capture_output=True, text=True)
+                return result.stdout if result.returncode == 0 else ""
+        except Exception as ex:
+            logger.warning(f"Could not fetch primary selection: {ex}")
+        return ""
+
+    def _set_primary_selection(self, text: str):
+        """Sets the X11/Wayland PRIMARY selection to ensure Shift+Insert works in terminals."""
+        import os
+        is_wayland = os.environ.get("WAYLAND_DISPLAY") is not None
+        try:
+            if is_wayland and shutil.which("wl-copy"):
+                subprocess.run(["wl-copy", "--primary"], input=text.encode("utf-8"), check=True)
+                return
+            if shutil.which("xclip"):
+                subprocess.run(["xclip", "-selection", "primary"], input=text.encode("utf-8"), check=True)
+                return
+            if shutil.which("xsel"):
+                subprocess.run(["xsel", "--primary", "--input"], input=text.encode("utf-8"), check=True)
+                return
+        except Exception as ex:
+            logger.warning(f"Failed to set primary selection: {ex}")
+
     def inject(self, text: str) -> bool:
         """
         Accumulates text in the buffer and checks flush conditions.
@@ -88,14 +125,17 @@ class ClipboardInjector(BaseInjector):
 
         try:
             # 1. Backup
+            backup_clipboard = ""
+            backup_primary = ""
             try:
-                backup = pyperclip.paste()
+                backup_clipboard = pyperclip.paste()
+                backup_primary = self._get_primary_selection()
             except Exception as ex:
-                logger.warning(f"Could not backup clipboard: {ex}")
-                backup = ""
+                logger.warning(f"Could not backup clipboards: {ex}")
 
             # 2. Load
             pyperclip.copy(payload)
+            self._set_primary_selection(payload)
 
             # 3. Wait
             time.sleep(0.05)
@@ -114,9 +154,10 @@ class ClipboardInjector(BaseInjector):
 
             # 6. Restore
             try:
-                pyperclip.copy(backup)
+                pyperclip.copy(backup_clipboard)
+                self._set_primary_selection(backup_primary)
             except Exception as ex:
-                logger.warning(f"Could not restore clipboard: {ex}")
+                logger.warning(f"Could not restore clipboards: {ex}")
 
             logger.info(f"Successfully pasted {len(payload.split())} words.")
             return True
