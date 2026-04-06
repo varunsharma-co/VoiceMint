@@ -1,18 +1,10 @@
 import threading
 import time
 
-import config
 import history
 import utils
 from stt import start_listening
 from text_injection import close_injector, get_injector
-
-
-def history_timer_loop() -> None:
-    """A background daemon thread that flushes history every N minutes."""
-    while True:
-        time.sleep(config.HISTORY_SAVE_INTERVAL_MINUTES * 60)
-        history.flush_history()
 
 
 def queue_consumer() -> None:
@@ -64,8 +56,7 @@ if __name__ == "__main__":
         exit(1)
 
     # Start the history background timer
-    timer_thread = threading.Thread(target=history_timer_loop, daemon=True)
-    timer_thread.start()
+    history.start_background_timer()
 
     # Start the background consumer thread to inject finalized text and buffer history
     consumer_thread = threading.Thread(target=queue_consumer, daemon=True)

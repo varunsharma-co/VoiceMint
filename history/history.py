@@ -1,9 +1,11 @@
 import json
 import os
 import threading
+import time
 import atexit
 from typing import List
 
+import config
 from config import MAX_HISTORY_MESSAGES
 from utils import get_logger
 
@@ -65,6 +67,18 @@ def flush_history() -> None:
         logger.info(f"Successfully saved {HISTORY_FILE} (total messages: {len(existing_history)})")
     except OSError as e:
         logger.error(f"Failed to write to {HISTORY_FILE}: {e}")
+
+def _history_timer_loop() -> None:
+    """A background daemon loop that flushes history every N minutes."""
+    while True:
+        time.sleep(config.HISTORY_SAVE_INTERVAL_MINUTES * 60)
+        flush_history()
+
+def start_background_timer() -> None:
+    """Spawns the background daemon thread to manage history flushing."""
+    timer_thread = threading.Thread(target=_history_timer_loop, daemon=True)
+    timer_thread.start()
+    logger.info(f"History background timer started ({config.HISTORY_SAVE_INTERVAL_MINUTES} min interval).")
 
 # Register the hard flush hook to run on program exit/crash
 atexit.register(flush_history)
