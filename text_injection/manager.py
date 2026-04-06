@@ -1,10 +1,9 @@
-import logging
-
+from utils import get_logger
 from config import ACTIVE_INJECTION_METHOD, InjectionMethod
 from .base import BaseInjector
 from .uinput_engine import UInputInjector
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Global cache for the active injector to avoid re-initializing virtual hardware
 _active_injector = None

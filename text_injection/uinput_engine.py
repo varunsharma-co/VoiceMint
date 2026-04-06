@@ -1,11 +1,11 @@
 import time
-import logging
 from evdev import UInput
 from evdev import ecodes as e
 
+from utils import get_logger
 from .base import BaseInjector
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class UInputInjector(BaseInjector):
