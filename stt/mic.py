@@ -4,6 +4,7 @@ import time
 import sounddevice as sd
 
 import config
+import utils
 from .silence import SilenceDetector
 from .stt_providers import get_transcriber
 
@@ -17,17 +18,17 @@ def stop_listening() -> None:
     Gracefully stops the active audio capture and network streams
     by clearing the universal kill switch.
     """
-    if config.is_listening.is_set():
-        config.is_listening.clear()
+    if utils.is_listening.is_set():
+        utils.is_listening.clear()
 
 def start_listening() -> None:
     """
     The main entry point for capturing audio.
     Instantiates the correct transcriber, starts the silence watchdog,
     and opens the sounddevice InputStream.
-    Blocks until config.is_listening is cleared.
+    Blocks until utils.is_listening is cleared.
     """
-    if config.is_listening.is_set():
+    if utils.is_listening.is_set():
         print("[App] Already listening. Ignoring duplicate start request.")
         return
 
@@ -48,7 +49,7 @@ def start_listening() -> None:
         sys.stdout.flush()
         
         if is_final:
-            config.transcript_queue.put(transcript)
+            utils.transcript_queue.put(transcript)
 
     # 3. Instantiate Transcriber via Factory
     try:
@@ -67,11 +68,11 @@ def start_listening() -> None:
             print(f"[Audio] Warning: {status}", file=sys.stderr)
         
         # Only forward audio if we are still marked as active
-        if config.is_listening.is_set():
+        if utils.is_listening.is_set():
             transcriber.send_audio_chunk(indata.tobytes())
 
     # 5. Start Execution Loop
-    config.is_listening.set()
+    utils.is_listening.set()
     
     try:
         transcriber.start_connection(config.SAMPLE_RATE)
@@ -87,15 +88,15 @@ def start_listening() -> None:
             print(f"\n[App] Listening via {config.ACTIVE_STT_PROVIDER.name}... (Press Ctrl+C to stop)")
             
             # Non-blocking sleep loop waiting for the global kill-switch
-            while config.is_listening.is_set():
+            while utils.is_listening.is_set():
                 time.sleep(0.1)
 
     except KeyboardInterrupt:
         print("\n[App] Interrupted by user.")
-        config.is_listening.clear()
+        utils.is_listening.clear()
     except Exception as e:
         print(f"\n[App] A critical error occurred: {e}")
-        config.is_listening.clear()
+        utils.is_listening.clear()
     finally:
         # 6. Teardown
         silence_detector.cancel()

@@ -27,25 +27,14 @@ This project uses standard `pip` and `requirements.txt`. Never assume a web envi
 - `pip install -r requirements.txt` ✅
 - For type stubs: `pip install types-requests types-redis` ✅
 
-### Automatic Linting Checks & Immediate Verification
+### Manual Code Review & Verification
 
-**MANDATORY: IMMEDIATELY run linting checks after creating or editing ANY Python file.** Do not consider a task complete until all checks pass.
+**MANDATORY: ALL Python code changes must be reviewed manually.** Do not consider a task complete until you have verified the logic yourself.
 
-**Immediate Verification Workflow:**
-
-```bash
-# 1. Check for immediate syntax/linting issues
-ruff check filename.py
-
-# 2. Auto-fix what can be fixed automatically (unused imports, legacy types)
-ruff check --fix filename.py
-
-# 3. Format the file consistently to 88 characters
-black filename.py
-
-# 4. Verify type annotations
-mypy filename.py
-```
+**Verification Workflow:**
+1. **Self-Review:** Read through your changes to ensure they follow the project's architectural patterns.
+2. **Logic Check:** Verify that exception handling and threading constraints are respected.
+3. **Manual Test:** If possible, describe how the user can manually verify the change.
 
 ---
 
@@ -345,10 +334,6 @@ def inject_text(text: str) -> bool:
     """
 ```
 
-### Python Line Length Standards (88 Characters)
-
-Modern Python development uses **88 characters** as the standard line length (Black formatter default). Wrap arguments appropriately.
-
 ### Framework-Specific: Pydantic V2 `@field_validator`
 
 If utilizing Pydantic models (e.g., for parsing LLM responses or validating configurations), always use `@field_validator` with `@classmethod`. Never use the deprecated V1 `@validator`.
@@ -378,5 +363,5 @@ def check_key(cls, v: str) -> str: ...
 6. **No terminal prints**: Route all errors to `logs/voice_typing_logs.log` with IST timestamps.
 7. **Centralized config**: Access environment variables and Enums strictly through `config.py`.
 8. **Proper exception handling**: Always use `raise ... from e` or `from None`.
-9. **Code formatting**: Enforce `black` (88 lines) and Google Style docstrings.
-10. **Validate instantly**: Run `ruff`, `black`, and `mypy` locally after writing any file.
+9. **Documentation**: Enforce Google Style docstrings for all code.
+10. **Manual Validation**: Self-review all logic and architecture before completion.

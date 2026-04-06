@@ -100,7 +100,7 @@ The application requires a robust method to capture audio, send it to streaming 
 
 ### Phase 1: Core Interfaces & Config State
 **Goal:** Define the shared state and base contracts.
-- [x] ✓ 2026-04-05 16:07 **Task 1.1:** Add `is_listening` event and the `Queue` to `config.py`.
+- [x] ✓ 2026-04-05 16:07 **Task 1.1:** Add `is_listening` event and the `Queue` to `utils.py`.
 - [x] ✓ 2026-04-05 16:07 **Task 1.2:** Define the `BaseTranscriber` interface in `stt/stt_providers/base.py`.
 
 ### Phase 2: Implement STT Providers and Manager

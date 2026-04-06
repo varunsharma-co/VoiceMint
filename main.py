@@ -1,7 +1,7 @@
 import threading
 import time
 
-import config
+import utils
 from stt import start_listening, stop_listening
 
 def queue_consumer() -> None:
@@ -10,8 +10,8 @@ def queue_consumer() -> None:
     Whenever final text is deposited by the STT provider, it prints it out.
     """
     while True:
-        if not config.transcript_queue.empty():
-            text = config.transcript_queue.get()
+        if not utils.transcript_queue.empty():
+            text = utils.transcript_queue.get()
             print(f"\n\n[Main - Queue Consumer] FINAL TEXT RECEIVED: \n{text}\n")
         time.sleep(0.1)
 

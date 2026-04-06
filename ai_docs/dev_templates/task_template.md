@@ -419,18 +419,9 @@ pip freeze > requirements.txt
 - [ ] **🚨 MANDATORY: NO FALLBACK BEHAVIOR - Always raise exceptions instead**
 - [ ] **🚨 MANDATORY: Clean up removal artifacts** completely, no commented dead code
 
-### Validation Commands (Run After Each File Change)
+### Validation & Manual Review
 
-```bash
-# 1. Quick linting with auto-fix
-ruff check . --fix
-
-# 2. Format to 88 characters
-black .
-
-# 3. Type checking
-mypy .
-```
+All code must be verified manually by the developer and reviewed by the user. No automatic linting tools are used in this project.
 
 ### STT Provider Standards
 
@@ -467,17 +458,17 @@ mypy .
   - Files: All modified files
 - [ ] **Task 3.2:** Import and Syntax Validation
 
-### Phase 4: Comprehensive Code Review (Mandatory)
+### Phase 4: Manual Code Review (Mandatory)
 
-**Goal:** Present "Implementation Complete!" and execute thorough code review
+**Goal:** Present "Implementation Complete!" and wait for user manual review
 
 🚨 **CRITICAL WORKFLOW CHECKPOINT:**
 
 - [ ] **Task 4.1:** Present Implementation Complete Message (MANDATORY)
   - **Action:** Present the exact "Implementation Complete!" message and wait for user approval.
 
-- [ ] **Task 4.2:** Execute Comprehensive Code Review (If User Approves)
-  - **Action:** Read all modified files and verify changes match task requirements exactly.
+- [ ] **Task 4.2:** Final Manual Verification (By User)
+  - **Action:** Request the user to manually verify changes match task requirements exactly.
 
 ### Task Completion Tracking - MANDATORY WORKFLOW
 
@@ -648,12 +639,12 @@ When a user requests any new Python feature, improvement, or significant change,
    - [ ] **Use PIP commands exclusively** for dependency management
 
 7. **WORKFLOW CONTINUATION**
-   - [ ] **After all implementation phases complete**: Proceed to Phase 4 (Comprehensive Code Review)
+   - [ ] **After all implementation phases complete**: Proceed to Phase 4 (Manual Code Review)
    - [ ] **Present "Implementation Complete!" message** and wait for user approval
 
 🛑 **NEVER start coding without explicit A/B/C choice from user!**  
 🛑 **NEVER continue to next phase without "proceed" confirmation!**  
-🛑 **NEVER skip comprehensive code review after implementation phases!**
+🛑 **NEVER skip manual code review after implementation phases!**
 🛑 NEVER use uv, multiprocessing, or Any!
 
 ### What Constitutes "Explicit User Approval"
@@ -713,6 +704,6 @@ When a user requests any new Python feature, improvement, or significant change,
 
 ---
 
-_Template Version: 3.1 - Linux Voice Typing Optimized (with Approval Guidelines)_  
-_Last Updated: 2026-04-03_  
+_Template Version: 3.2 - Linux Voice Typing Optimized (Manual Review Only)_  
+_Last Updated: 2026-04-06_  
 _Refactored for pure Python Thread-based architecture_
