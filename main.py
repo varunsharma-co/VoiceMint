@@ -2,7 +2,7 @@ import threading
 import time
 
 import config
-import history.history as history_module
+import history
 import utils
 from stt import start_listening
 from text_injection import close_injector, get_injector
@@ -12,7 +12,7 @@ def history_timer_loop() -> None:
     """A background daemon thread that flushes history every N minutes."""
     while True:
         time.sleep(config.HISTORY_SAVE_INTERVAL_MINUTES * 60)
-        history_module.flush_history()
+        history.flush_history()
 
 
 def queue_consumer() -> None:
