@@ -14,8 +14,15 @@ class STTProvider(Enum):
     ASSEMBLYAI = "assemblyai"
 
 
+class InjectionMethod(Enum):
+    """Enumeration of supported text injection methods."""
+
+    UINPUT = "uinput"
+
+
 # --- APPLICATION SETTINGS ---
 ACTIVE_STT_PROVIDER = STTProvider.SONIOX
+ACTIVE_INJECTION_METHOD = InjectionMethod.UINPUT
 SILENCE_TIMEOUT_SECONDS = 45.0
 SAMPLE_RATE = 16000
 

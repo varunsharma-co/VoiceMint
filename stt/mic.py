@@ -83,7 +83,7 @@ def start_listening() -> None:
             samplerate=config.SAMPLE_RATE,
             channels=1,
             dtype="int16",
-            callback=audio_callback
+            callback=audio_callback,
         ):
             print(f"\n[App] Listening via {config.ACTIVE_STT_PROVIDER.name}... (Press Ctrl+C to stop)")
             

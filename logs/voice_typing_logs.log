@@ -1,0 +1,36 @@
+2026-04-06 15:27:41,680 [INFO] __main__: ===================================================
+2026-04-06 15:27:41,681 [INFO] __main__: 🎤 VoiceMint Application Started
+2026-04-06 15:27:41,681 [INFO] __main__: ===================================================
+2026-04-06 15:27:41,681 [INFO] text_injection: Starting injection consumer thread.
+2026-04-06 15:27:41,681 [INFO] __main__: Injection engine ready.
+2026-04-06 15:27:41,682 [INFO] text_injection.manager: Instantiating UInputInjector.
+2026-04-06 15:27:41,683 [ERROR] text_injection.uinput_engine: Failed to initialize UInput device: "/dev/uinput" cannot be opened for writing
+2026-04-06 15:27:47,465 [INFO] text_injection: Injecting text: 'Hey, bro....'
+2026-04-06 15:27:47,466 [WARNING] text_injection.uinput_engine: UInput device not initialized. Injection skipped.
+2026-04-06 15:27:47,466 [ERROR] text_injection: Injection failed for current transcript.
+2026-04-06 15:27:49,375 [INFO] text_injection: Injecting text: ' How are you doing?...'
+2026-04-06 15:27:49,376 [WARNING] text_injection.uinput_engine: UInput device not initialized. Injection skipped.
+2026-04-06 15:27:49,376 [ERROR] text_injection: Injection failed for current transcript.
+2026-04-06 15:27:53,223 [INFO] text_injection: Injecting text: ' Hello....'
+2026-04-06 15:27:53,223 [WARNING] text_injection.uinput_engine: UInput device not initialized. Injection skipped.
+2026-04-06 15:27:53,223 [ERROR] text_injection: Injection failed for current transcript.
+2026-04-06 15:27:59,302 [INFO] __main__: [Main] Application exited cleanly.
+2026-04-06 15:32:35,449 [INFO] __main__: ===================================================
+2026-04-06 15:32:35,449 [INFO] __main__: 🎤 VoiceMint Application Started
+2026-04-06 15:32:35,449 [INFO] __main__: ===================================================
+2026-04-06 15:32:35,449 [INFO] text_injection: Starting injection consumer thread.
+2026-04-06 15:32:35,449 [INFO] text_injection.manager: Instantiating UInputInjector.
+2026-04-06 15:32:35,449 [INFO] __main__: Injection engine ready.
+2026-04-06 15:32:35,450 [ERROR] text_injection.uinput_engine: Failed to initialize UInput device: "/dev/uinput" cannot be opened for writing
+2026-04-06 15:32:39,936 [INFO] text_injection: Injecting text: 'Hello....'
+2026-04-06 15:32:39,936 [WARNING] text_injection.uinput_engine: UInput device not initialized. Injection skipped.
+2026-04-06 15:32:39,936 [ERROR] text_injection: Injection failed for current transcript.
+2026-04-06 15:32:43,061 [INFO] __main__: [Main] Application exited cleanly.
+2026-04-06 15:33:11,214 [INFO] __main__: ===================================================
+2026-04-06 15:33:11,214 [INFO] __main__: 🎤 VoiceMint Application Started
+2026-04-06 15:33:11,214 [INFO] __main__: ===================================================
+2026-04-06 15:33:11,214 [INFO] text_injection: Starting injection consumer thread.
+2026-04-06 15:33:11,214 [INFO] __main__: Injection engine ready.
+2026-04-06 15:33:11,214 [INFO] text_injection.manager: Instantiating UInputInjector.
+2026-04-06 15:33:11,716 [INFO] text_injection.uinput_engine: UInput device 'voicemint-virtual-keyboard' initialized successfully.
+2026-04-06 15:33:13,677 [INFO] __main__: [Main] Application exited cleanly.
