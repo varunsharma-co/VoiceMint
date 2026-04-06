@@ -2,8 +2,9 @@ import threading
 import time
 
 import utils
-from stt import start_listening, stop_listening
-from text_injection import get_injector, close_injector
+from stt import start_listening
+from text_injection import close_injector, get_injector
+
 
 def queue_consumer() -> None:
     """
@@ -17,6 +18,11 @@ def queue_consumer() -> None:
             text = utils.transcript_queue.get()
             print(f"\n\n[Main - Queue Consumer] FINAL TEXT RECEIVED. Injecting: \n{text}\n")
             injector.inject(text)
+        elif not utils.is_listening.is_set():
+            # Trigger 3: Cleanup Flush
+            if hasattr(injector, "flush"):
+                injector.flush()
+        
         time.sleep(0.1)
 
 if __name__ == "__main__":

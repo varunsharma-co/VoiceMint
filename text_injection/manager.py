@@ -2,6 +2,7 @@ from utils import get_logger
 from config import ACTIVE_INJECTION_METHOD, InjectionMethod
 from .base import BaseInjector
 from .uinput_engine import UInputInjector
+from .clipboard_engine import ClipboardInjector
 
 logger = get_logger(__name__)
 
@@ -23,6 +24,8 @@ def get_injector() -> BaseInjector:
 
     if ACTIVE_INJECTION_METHOD == InjectionMethod.UINPUT:
         _active_injector = UInputInjector()
+    elif ACTIVE_INJECTION_METHOD == InjectionMethod.CLIPBOARD:
+        _active_injector = ClipboardInjector()
     else:
         logger.warning(
             f"Unsupported injection method: {ACTIVE_INJECTION_METHOD}, defaulting to UInput."

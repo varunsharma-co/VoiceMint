@@ -2,3 +2,4 @@ sounddevice
 websockets
 python-dotenv
 numpy
+pyperclip

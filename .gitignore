@@ -21,3 +21,5 @@ ai_docs/*
 __pycache__/
 
 pyproject.toml
+
+logs/
