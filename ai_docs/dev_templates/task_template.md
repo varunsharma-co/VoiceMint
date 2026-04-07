@@ -612,12 +612,29 @@ When a user requests any new Python feature, improvement, or significant change,
 3. **STRATEGIC ANALYSIS** (🟡🔴 if needed)
 4. **CREATE APPROPRIATELY-SIZED TASK DOCUMENT (Required)**
 5. **PRESENT TASK DOCUMENT & IMPLEMENTATION OPTIONS (Required)**
-   - [ ] **Present the complete task document summary AND implementation options together:**
+   - [ ] **Present the complete task document summary, the list of files to be modified/created, AND implementation options together:**
 
    ```
    📋 **Task Document Created**
 
    I've created a [COMPLEXITY LEVEL] task document that proposes [BRIEF SUMMARY OF APPROACH].
+
+   **Files to be Edited:**
+   
+   **Folder: `path/to/folder1/`**
+   - `file1.py`
+   - `file2.py`
+   
+   **Folder: `path/to/folder2/`**
+   - `file3.py`
+   
+   **New Files to be Created:**
+   
+   **Folder: `path/to/folder1/`**
+   - `new_file1.py`
+   
+   **Folder: `path/to/folder2/`**
+   - `new_file2.py`
 
    **👤 How would you like to proceed?**
 
