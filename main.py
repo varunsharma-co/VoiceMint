@@ -1,11 +1,26 @@
 import threading
 import time
+import sys
+import fcntl
+import os
 
 import history
 import utils
-from stt import start_listening
 from text_injection import close_injector, get_injector
+import ui
 
+LOCK_FILE = "/tmp/voicemint.lock"
+_lock_fd = None
+
+def enforce_single_instance():
+    global _lock_fd
+    _lock_fd = os.open(LOCK_FILE, os.O_CREAT | os.O_RDWR)
+    try:
+        fcntl.flock(_lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        print("An instance of VoiceMint is already running.")
+        # Optional: Show a messagebox if needed, but since it's a background CLI primarily, exiting is fine.
+        sys.exit(0)
 
 def queue_consumer() -> None:
     """
@@ -41,19 +56,18 @@ def queue_consumer() -> None:
         time.sleep(0.1)
 
 if __name__ == "__main__":
-    print("===================================================")
-    print("🎤 VoiceMint STT Module Test")
-    print("===================================================")
-    print("This is a temporary main.py to test the STT package.")
-    print("Speak into your microphone. Press Ctrl+C to exit.")
-    print("===================================================\n")
+    enforce_single_instance()
 
-    # Initialize the injector early to catch permission errors before starting the mic
+    print("===================================================")
+    print("🎤 VoiceMint Starting...")
+    print("===================================================")
+
+    # Initialize the injector early to catch permission errors before starting the app
     try:
         get_injector()
     except Exception as e:
         print(f"\n[App] Failed to initialize text injection: {e}")
-        exit(1)
+        sys.exit(1)
 
     # Start the history background timer
     history.start_background_timer()
@@ -62,11 +76,17 @@ if __name__ == "__main__":
     consumer_thread = threading.Thread(target=queue_consumer, daemon=True)
     consumer_thread.start()
 
-    # Start the microphone and STT WebSocket stream.
-    # This call will block the main thread until Ctrl+C is pressed or the silence timeout hits.
-    start_listening()
+    # Start global hotkey listener
+    listener = ui.start_hotkey_listener()
+
+    # Start GUI on main thread
+    ui.launch_ui()
 
     # Clean up the injector (virtual hardware) when exiting
     close_injector()
+    
+    # Also stop hotkey listener
+    if listener is not None:
+        listener.stop()
 
     print("\n[Main] Application exited cleanly.")
