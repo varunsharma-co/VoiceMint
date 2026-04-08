@@ -21,6 +21,14 @@ class VoiceMintUI(ctk.CTk):
         self.is_active = False
 
         self._setup_ui()
+        
+        # Intercept Close button to minimize to tray
+        self.protocol("WM_DELETE_WINDOW", self._on_minimize_to_tray)
+        
+        # Register restore callback with TrayManager
+        from ui.tray import get_tray_manager
+        get_tray_manager().set_restore_callback(self._restore_from_tray)
+
         self._poll_state()
         
     def _setup_ui(self):
@@ -53,6 +61,17 @@ class VoiceMintUI(ctk.CTk):
 
     def _toggle_always_on_top(self):
         self.attributes("-topmost", self.always_on_top.get())
+
+    def _on_minimize_to_tray(self):
+        """Hides the window instead of closing it."""
+        logger.info("UI: Minimizing to tray.")
+        self.withdraw()
+
+    def _restore_from_tray(self):
+        """Restores the window in a thread-safe manner."""
+        logger.info("UI: Restoring from tray.")
+        self.after(0, self.deiconify)
+        self.after(0, self.focus_force)
 
     def _on_start_clicked(self):
         from ui.tray import get_tray_manager

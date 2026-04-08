@@ -56,3 +56,40 @@ Once you have logged back in, you can verify your membership by running `groups`
 # Example execution (assuming you are in the project root)
 ./voicemint/bin/python main.py
 ```
+
+---
+***
+
+### Setting Up the Native Linux System Tray (VoiceMint)
+
+To run the native GTK system tray icon and notifications on Linux Mint Cinnamon, you need to install the underlying system C-libraries and compile the Python bindings. 
+
+#### 1. Install System Dependencies
+Before installing the Python packages, your operating system needs the modern `AyatanaAppIndicator` library to render the tray icon, as well as the C-compilers to build the Python bridge.
+
+Run the following command in your terminal (outside or inside your virtual environment, it does not matter):
+
+```bash
+sudo apt-get update
+sudo apt-get install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 gir1.2-ayatanaappindicator3-0.1
+```
+
+* **What this does:** * `gir1.2-ayatanaappindicator3-0.1`: The modern, system-level Linux tray renderer.
+  * `gir1.2-gtk-3.0`: The core GTK UI framework.
+  * `libgirepository1.0-dev`, `gcc`, `pkg-config`, etc.: The C-compilers and headers required for `pip` to successfully build the Python wrapper.
+
+#### 2. Install Python Dependencies
+Once the system libraries are installed, you need to install `PyGObject` inside your isolated virtual environment. This acts as the bridge between Python and the native Linux GTK libraries.
+
+**First, ensure your virtual environment is activated:**
+```bash
+source venv/bin/activate  # Or whichever activation command you use
+```
+
+**Then, install the package:**
+```bash
+pip install PyGObject
+```
+
+#### 3. Audio Playback Note
+There are no additional Python libraries (like `pygame` or `pydub`) required for notification sounds. VoiceMint uses the `aplay` command-line tool, which comes pre-installed natively on Linux Mint.

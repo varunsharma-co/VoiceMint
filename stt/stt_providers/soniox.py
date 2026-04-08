@@ -5,6 +5,7 @@ from typing import List, Optional
 from websockets.exceptions import ConnectionClosed
 from websockets.sync.client import connect, ClientConnection
 
+import utils
 from .base import BaseTranscriber, TranscriptCallback
 
 SONIOX_WEBSOCKET_URL = "wss://stt-rt.soniox.com/transcribe-websocket"
@@ -21,6 +22,7 @@ class SonioxTranscriber(BaseTranscriber):
         self._stop_event = threading.Event()
         self.ws: Optional[ClientConnection] = None
         self.message_thread: Optional[threading.Thread] = None
+        self._connection_closed = True  # Start in closed state
 
     def _get_config(self, sample_rate: int) -> dict:
         """Builds the configuration JSON for the Soniox API."""
@@ -49,7 +51,8 @@ class SonioxTranscriber(BaseTranscriber):
             return
 
         try:
-            while not self._stop_event.is_set():
+            # Aggressively check stop event and global app_running flag
+            while not self._stop_event.is_set() and utils.app_running.is_set():
                 try:
                     message = self.ws.recv(timeout=1.0)
                 except TimeoutError:
@@ -92,9 +95,12 @@ class SonioxTranscriber(BaseTranscriber):
                     break
                     
         except ConnectionClosed:
-            print("[STT Provider: Soniox] WebSocket connection closed normally.")
+            # Only print if we haven't already explicitly closed the connection
+            if not self._connection_closed:
+                print("[STT Provider: Soniox] WebSocket connection closed by server.")
         except Exception as e:
-            print(f"[STT Provider: Soniox] Message handler error: {e}")
+            if utils.app_running.is_set() and not self._connection_closed:
+                print(f"[STT Provider: Soniox] Message handler error: {e}")
         finally:
             self._stop_event.set()
 
@@ -104,6 +110,7 @@ class SonioxTranscriber(BaseTranscriber):
         """
         self._stop_event.clear()
         self.final_tokens = []
+        self._connection_closed = False
         
         try:
             self.ws = connect(SONIOX_WEBSOCKET_URL)
@@ -124,17 +131,24 @@ class SonioxTranscriber(BaseTranscriber):
         """
         Sends raw PCM audio bytes to the connected WebSocket.
         """
-        if self.ws and not self._stop_event.is_set():
+        # Ensure we don't send if the app is shutting down or connection is closing
+        if self.ws and not self._stop_event.is_set() and utils.app_running.is_set() and not self._connection_closed:
             try:
                 self.ws.send(audio_chunk)
             except Exception as e:
-                print(f"[STT Provider: Soniox] Failed to send audio chunk: {e}")
+                if utils.app_running.is_set() and not self._connection_closed:
+                    print(f"[STT Provider: Soniox] Failed to send audio chunk: {e}")
                 self._stop_event.set()
 
     def close_connection(self) -> None:
         """
         Closes the WebSocket connection and waits for the message thread to exit.
+        Idempotent: Only runs teardown once.
         """
+        if self._connection_closed:
+            return
+
+        self._connection_closed = True
         self._stop_event.set()
         
         if self.ws:
@@ -145,6 +159,7 @@ class SonioxTranscriber(BaseTranscriber):
             self.ws = None
             
         if self.message_thread and self.message_thread.is_alive():
-            self.message_thread.join(timeout=2.0)
+            # Use a short join to ensure the message thread can exit its loop
+            self.message_thread.join(timeout=1.5)
             
         print("[STT Provider: Soniox] Disconnected and cleaned up resources.")

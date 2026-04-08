@@ -2,6 +2,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 
 import gi
 
@@ -43,10 +44,15 @@ class TrayManager:
         self.indicator = None
         self.ram_assets = {}
         self.is_active = False
+        self.restore_callback = None
         
         # Load assets can stay here as it's just filesystem I/O
         self.load_assets_to_ram()
         self.initialized = True
+
+    def set_restore_callback(self, callback):
+        """Allows the UI to register a function to restore the window."""
+        self.restore_callback = callback
 
     def load_assets_to_ram(self):
         """Copies assets to /dev/shm for zero-latency access, keeping fallback paths."""
@@ -84,19 +90,47 @@ class TrayManager:
             self.indicator.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
             
             menu = Gtk.Menu()
+            
+            # Open VoiceMint item
+            item_show = Gtk.MenuItem(label="Open VoiceMint")
+            item_show.connect('activate', self.on_show_window)
+            menu.append(item_show)
+            
+            # Separator
+            separator = Gtk.SeparatorMenuItem()
+            menu.append(separator)
+            
+            # Quit item
             item_quit = Gtk.MenuItem(label="Quit VoiceMint")
             item_quit.connect('activate', self.on_quit)
             menu.append(item_quit)
+            
             menu.show_all()
             self.indicator.set_menu(menu)
             logger.info("GTK AppIndicator setup complete on thread.")
         except Exception as e:
             logger.error(f"Failed to setup GTK AppIndicator: {e}")
 
+    def on_show_window(self, source):
+        """Callback for the Open VoiceMint menu item."""
+        if self.restore_callback:
+            # Trigger the UI restoration callback
+            self.restore_callback()
+        else:
+            logger.warning("Tray: Open VoiceMint clicked but no restore callback registered.")
+
     def on_quit(self, source):
         """Soft shutdown: Clear the running flag and stop the GTK loop."""
         logger.info("Tray: Quit requested. Signaling soft shutdown.")
+        
+        # If we are currently listening, trigger the deactivation feedback
+        if self.is_active:
+            self.handle_activation_request(activate=False)
+            # Give a split second for the subprocesses to launch (aplay/notify-send)
+            time.sleep(0.4)
+            
         utils.app_running.clear()
+        # Signal GTK to stop its own loop
         GLib.idle_add(Gtk.main_quit)
 
     def play_sound(self, sound_filename: str):

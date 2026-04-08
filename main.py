@@ -8,6 +8,7 @@ import history
 import utils
 from text_injection import close_injector, get_injector
 import ui
+import stt
 
 LOCK_FILE = "/tmp/voicemint.lock"
 _lock_fd = None
@@ -94,25 +95,29 @@ if __name__ == "__main__":
 
     # --- CLEANUP SEQUENCE ---
     print("\n[Main] Initiating graceful cleanup...")
+    
+    # Give a split-second for any final notifications/sounds (e.g. from Tray Quit) to spawn
+    time.sleep(0.5)
+    
     utils.app_running.clear()
     
-    # Stop dictation if active
-    utils.is_listening.clear()
+    # 1. Forcefully stop dictation if active (WebSocket connection closed violently)
+    stt.stop_listening()
 
-    # Wait for consumer to finish final history writes
+    # 2. Wait for consumer to finish final history writes
     consumer_thread.join(timeout=2.0)
 
-    # Clean up virtual hardware
+    # 3. Clean up virtual hardware
     close_injector()
     
-    # Stop hotkey listener
+    # 4. Stop hotkey listener
     if listener is not None:
         listener.stop()
 
-    # Clean up RAM assets
+    # 5. Clean up RAM assets
     tray_manager.cleanup_ram_assets()
 
-    # Remove lock file
+    # 6. Remove lock file
     if os.path.exists(LOCK_FILE):
         try:
             os.remove(LOCK_FILE)
