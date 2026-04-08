@@ -44,8 +44,8 @@ class TrayManager:
         self.ram_assets = {}
         self.is_active = False
         
+        # Load assets can stay here as it's just filesystem I/O
         self.load_assets_to_ram()
-        self.setup_indicator()
         self.initialized = True
 
     def load_assets_to_ram(self):
@@ -89,7 +89,7 @@ class TrayManager:
             menu.append(item_quit)
             menu.show_all()
             self.indicator.set_menu(menu)
-            logger.info("GTK AppIndicator setup complete.")
+            logger.info("GTK AppIndicator setup complete on thread.")
         except Exception as e:
             logger.error(f"Failed to setup GTK AppIndicator: {e}")
 
@@ -97,7 +97,6 @@ class TrayManager:
         """Soft shutdown: Clear the running flag and stop the GTK loop."""
         logger.info("Tray: Quit requested. Signaling soft shutdown.")
         utils.app_running.clear()
-        # Signal GTK to stop its own loop
         GLib.idle_add(Gtk.main_quit)
 
     def play_sound(self, sound_filename: str):
@@ -161,7 +160,8 @@ class TrayManager:
                 return True
 
     def run(self):
-        """Starts the GTK main loop."""
+        """Starts the GTK main loop after ensuring initialization on the same thread."""
+        self.setup_indicator()
         Gtk.main()
 
 _tray_manager = None
