@@ -24,10 +24,13 @@ def _suppress_typed_character():
     except Exception as ex:
         logger.error(f"Failed to suppress hotkey character via pynput Controller: {ex}")
 
+from ui.tray import get_tray_manager
+
 def on_activate_start():
     """Triggered when the start hotkey is pressed."""
     _suppress_typed_character()
-    if not utils.is_listening.is_set():
+    tray = get_tray_manager()
+    if tray.handle_activation_request(activate=True):
         logger.info("Hotkey triggered: START listening")
         # Start listening in a background thread so we don't block the hotkey listener
         threading.Thread(target=start_listening, daemon=True).start()
@@ -35,7 +38,8 @@ def on_activate_start():
 def on_activate_stop():
     """Triggered when the stop hotkey is pressed."""
     _suppress_typed_character()
-    if utils.is_listening.is_set():
+    tray = get_tray_manager()
+    if tray.handle_activation_request(activate=False):
         logger.info("Hotkey triggered: STOP listening")
         # stop_listening() will stop the mic and close the websockets, unblocking the start_listening thread
         stop_listening()

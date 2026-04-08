@@ -19,74 +19,105 @@ def enforce_single_instance():
         fcntl.flock(_lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except BlockingIOError:
         print("An instance of VoiceMint is already running.")
-        # Optional: Show a messagebox if needed, but since it's a background CLI primarily, exiting is fine.
         sys.exit(0)
 
 def queue_consumer() -> None:
     """
-    A simple daemon thread that watches the transcript_queue.
-    Whenever final text is deposited by the STT provider, it injects it into the OS
-    and buffers it for session history.
+    A persistent daemon thread that watches the transcript_queue.
+    Checks utils.app_running to ensure a graceful exit.
     """
     injector = get_injector()
     session_text = ""
 
-    while True:
+    while utils.app_running.is_set() or not utils.transcript_queue.empty():
         if not utils.transcript_queue.empty():
             text = utils.transcript_queue.get()
-            print(f"\n\n[Main - Queue Consumer] FINAL TEXT RECEIVED. Injecting: \n{text}\n")
+            print(f"\n[Consumer] FINAL TEXT: {text}")
             injector.inject(text)
             
-            # Accumulate text for the current session
             if session_text and not session_text.endswith(" "):
                 session_text += " " + text.strip()
             else:
                 session_text += text.strip()
 
         elif not utils.is_listening.is_set():
-            # Trigger 3: Cleanup Flush
             if hasattr(injector, "flush"):
                 injector.flush()
                 
-            # If the session ended, push the accumulated text to the history buffer
             if session_text.strip():
                 history.add_session(session_text)
-                session_text = ""  # Reset for the next session
+                session_text = ""
         
         time.sleep(0.1)
+    
+    # Final flush on exit
+    if session_text.strip():
+        history.add_session(session_text)
+    
+    print("[Consumer] Exited gracefully.")
 
 if __name__ == "__main__":
     enforce_single_instance()
+    utils.app_running.set()
 
     print("===================================================")
     print("🎤 VoiceMint Starting...")
     print("===================================================")
 
-    # Initialize the injector early to catch permission errors before starting the app
     try:
         get_injector()
     except Exception as e:
         print(f"\n[App] Failed to initialize text injection: {e}")
         sys.exit(1)
 
-    # Start the history background timer
     history.start_background_timer()
 
-    # Start the background consumer thread to inject finalized text and buffer history
-    consumer_thread = threading.Thread(target=queue_consumer, daemon=True)
+    # Consumer thread
+    consumer_thread = threading.Thread(target=queue_consumer, daemon=False)
     consumer_thread.start()
 
-    # Start global hotkey listener
+    # Tray on background thread (it manages its own GLib/GTK context)
+    tray_manager = ui.get_tray_manager()
+    tray_thread = threading.Thread(target=tray_manager.run, daemon=True)
+    tray_thread.start()
+
+    # Hotkey listener
     listener = ui.start_hotkey_listener()
 
-    # Start GUI on main thread
-    ui.launch_ui()
+    print("[Main] System Tray and background workers active.")
+    
+    # Launch UI on Main Thread (CustomTkinter/Tkinter REQUIRE this on Linux/X11)
+    try:
+        ui.launch_ui()
+    except KeyboardInterrupt:
+        utils.app_running.clear()
 
-    # Clean up the injector (virtual hardware) when exiting
+    # --- CLEANUP SEQUENCE ---
+    print("\n[Main] Initiating graceful cleanup...")
+    utils.app_running.clear()
+    
+    # Stop dictation if active
+    utils.is_listening.clear()
+
+    # Wait for consumer to finish final history writes
+    consumer_thread.join(timeout=2.0)
+
+    # Clean up virtual hardware
     close_injector()
     
-    # Also stop hotkey listener
+    # Stop hotkey listener
     if listener is not None:
         listener.stop()
 
-    print("\n[Main] Application exited cleanly.")
+    # Clean up RAM assets
+    tray_manager.cleanup_ram_assets()
+
+    # Remove lock file
+    if os.path.exists(LOCK_FILE):
+        try:
+            os.remove(LOCK_FILE)
+            print("[Main] Lock file removed.")
+        except Exception as e:
+            print(f"[Main] Failed to remove lock file: {e}")
+
+    print("[Main] Application exited cleanly.")

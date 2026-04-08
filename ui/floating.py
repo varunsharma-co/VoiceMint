@@ -55,17 +55,26 @@ class VoiceMintUI(ctk.CTk):
         self.attributes("-topmost", self.always_on_top.get())
 
     def _on_start_clicked(self):
-        if not utils.is_listening.is_set():
+        from ui.tray import get_tray_manager
+        tray = get_tray_manager()
+        if tray.handle_activation_request(activate=True):
             logger.info("UI: Start clicked")
             threading.Thread(target=start_listening, daemon=True).start()
 
     def _on_stop_clicked(self):
-        if utils.is_listening.is_set():
+        from ui.tray import get_tray_manager
+        tray = get_tray_manager()
+        if tray.handle_activation_request(activate=False):
             logger.info("UI: Stop clicked")
             stop_listening()
 
     def _poll_state(self):
-        """Poll the utils.is_listening event to update UI state periodically."""
+        """Poll the utils flags to update UI state and detect shutdown."""
+        if not utils.app_running.is_set():
+            logger.info("UI: Shutdown signaled. Closing window.")
+            self.destroy()
+            return
+
         currently_active = utils.is_listening.is_set()
         
         if currently_active != self.is_active:
@@ -86,8 +95,8 @@ class VoiceMintUI(ctk.CTk):
 def launch_ui():
     """Entry point to launch the floating GUI."""
     # Set default theme
-    ctk.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
-    ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
+    ctk.set_appearance_mode("System")
+    ctk.set_default_color_theme("blue")
     
     app = VoiceMintUI()
     app.mainloop()
