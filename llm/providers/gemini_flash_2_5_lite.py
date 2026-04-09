@@ -10,7 +10,7 @@ client = genai.Client()
 
 single_prompt = "Whats the capital of India?"
 
-
+system_prompt = "Answer as if you are a big Narendra Modi fan"
 
 async def gemini_call(prompt: str) -> str:
 
@@ -18,7 +18,10 @@ async def gemini_call(prompt: str) -> str:
         model="gemini-2.5-flash-lite",
         contents=[
             types.Content(parts=[types.Part.from_text(text=prompt)], role="user")
-        ]
+        ],
+        config=types.GenerateContentConfig(
+            system_instruction=system_prompt,
+        )
     )
 
     return response.text
