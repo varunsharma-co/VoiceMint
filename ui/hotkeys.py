@@ -32,6 +32,7 @@ def on_activate_start():
     tray = get_tray_manager()
     if tray.handle_activation_request(activate=True):
         logger.info("Hotkey triggered: START listening")
+        utils.is_listening.set()
         # Start listening in a background thread so we don't block the hotkey listener
         threading.Thread(target=start_listening, daemon=True).start()
 
@@ -41,6 +42,7 @@ def on_activate_stop():
     tray = get_tray_manager()
     if tray.handle_activation_request(activate=False):
         logger.info("Hotkey triggered: STOP listening")
+        utils.is_listening.clear()
         # stop_listening() will stop the mic and close the websockets, unblocking the start_listening thread
         stop_listening()
 

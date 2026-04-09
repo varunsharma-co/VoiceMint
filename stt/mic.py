@@ -16,6 +16,12 @@ _active_transcriber: Optional[BaseTranscriber] = None
 def _on_silence_timeout() -> None:
     """Callback triggered by the silence detector daemon."""
     print(f"\n[Watchdog] {config.SILENCE_TIMEOUT_SECONDS}s of silence detected. Stopping listening.")
+    try:
+        from ui.tray import get_tray_manager
+        tray = get_tray_manager()
+        tray.handle_activation_request(activate=False, is_timeout=True)
+    except Exception as e:
+        print(f"Error signaling tray manager on timeout: {e}")
     stop_listening()
 
 def stop_listening() -> None:
@@ -42,7 +48,7 @@ def start_listening() -> None:
     """
     global _active_transcriber
 
-    if utils.is_listening.is_set():
+    if _active_transcriber:
         print("[App] Already listening. Ignoring duplicate start request.")
         return
 

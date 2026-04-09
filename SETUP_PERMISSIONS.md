@@ -64,6 +64,8 @@ Once you have logged back in, you can verify your membership by running `groups`
 
 To run the native GTK system tray icon and notifications on Linux Mint Cinnamon, you need to install the underlying system C-libraries and compile the Python bindings. 
 
+*Note* that these sudo install commands need to be run before we install PyGObject library using pip within our virtual envoirnment.
+
 #### 1. Install System Dependencies
 Before installing the Python packages, your operating system needs the modern `AyatanaAppIndicator` library to render the tray icon, as well as the C-compilers to build the Python bridge.
 

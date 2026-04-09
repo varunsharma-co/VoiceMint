@@ -163,7 +163,7 @@ class TrayManager:
         except Exception as e:
             logger.error(f"Failed to send notification: {e}")
 
-    def handle_activation_request(self, activate: bool) -> bool:
+    def handle_activation_request(self, activate: bool, is_timeout: bool = False) -> bool:
         """
         Handles requests to turn voice typing on or off.
         Checks for redundant state and shows appropriate notifications.
@@ -187,7 +187,10 @@ class TrayManager:
                 return False
             else:
                 self.is_active = False
-                self.show_notification("VoiceMint Deactivated", "Stopped Listening...", ICON_OFF)
+                if is_timeout:
+                    self.show_notification("VoiceMint Deactivated", "Silence timeout reached. Stopped listening.", ICON_OFF)
+                else:
+                    self.show_notification("VoiceMint Deactivated", "Stopped Listening...", ICON_OFF)
                 self.play_sound(SOUND_STOP)
                 if self.indicator:
                     GLib.idle_add(self.indicator.set_icon_full, self.ram_assets[ICON_OFF], "Inactive")
