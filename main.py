@@ -1,7 +1,6 @@
 import threading
 import time
 import sys
-import fcntl
 import os
 
 import history
@@ -9,18 +8,6 @@ import utils
 from text_injection import close_injector, get_injector
 import ui
 import stt
-
-LOCK_FILE = "/tmp/voicemint.lock"
-_lock_fd = None
-
-def enforce_single_instance():
-    global _lock_fd
-    _lock_fd = os.open(LOCK_FILE, os.O_CREAT | os.O_RDWR)
-    try:
-        fcntl.flock(_lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except BlockingIOError:
-        print("An instance of VoiceMint is already running.")
-        sys.exit(0)
 
 def queue_consumer() -> None:
     """
@@ -58,7 +45,7 @@ def queue_consumer() -> None:
     print("[Consumer] Exited gracefully.")
 
 if __name__ == "__main__":
-    enforce_single_instance()
+    utils.enforce_single_instance()
     utils.app_running.set()
 
     print("===================================================")
@@ -118,9 +105,9 @@ if __name__ == "__main__":
     tray_manager.cleanup_ram_assets()
 
     # 6. Remove lock file
-    if os.path.exists(LOCK_FILE):
+    if os.path.exists(utils.LOCK_FILE):
         try:
-            os.remove(LOCK_FILE)
+            os.remove(utils.LOCK_FILE)
             print("[Main] Lock file removed.")
         except Exception as e:
             print(f"[Main] Failed to remove lock file: {e}")

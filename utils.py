@@ -3,8 +3,39 @@ import queue
 import logging
 from logging.handlers import TimedRotatingFileHandler
 import os
+import sys
+import fcntl
+import signal
 
 import config
+
+# --- SINGLE INSTANCE LOCK ---
+LOCK_FILE = "/tmp/voicemint.lock"
+_lock_fd = None
+
+def enforce_single_instance():
+    global _lock_fd
+    # Open with O_RDWR so we can write the PID
+    _lock_fd = os.open(LOCK_FILE, os.O_CREAT | os.O_RDWR)
+    try:
+        fcntl.flock(_lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        # Truncate and write current PID to the lock file
+        os.ftruncate(_lock_fd, 0)
+        os.write(_lock_fd, str(os.getpid()).encode())
+    except BlockingIOError:
+        # Read the PID of the existing instance
+        try:
+            with open(LOCK_FILE, "r") as f:
+                pid_str = f.read().strip()
+                if pid_str.isdigit():
+                    pid = int(pid_str)
+                    # Send SIGUSR1 to the existing process to wake it up
+                    os.kill(pid, signal.SIGUSR1)
+        except Exception as e:
+            print(f"Failed to signal existing instance: {e}")
+            
+        print("An instance of VoiceMint is already running.")
+        sys.exit(0)
 
 # --- LOGGING SETUP ---
 # Ensure the logs directory exists

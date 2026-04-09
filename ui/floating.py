@@ -1,6 +1,7 @@
 import threading
+import signal
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 
 import utils
 from stt import start_listening, stop_listening
@@ -26,6 +27,9 @@ class VoiceMintUI(tk.Tk):
         self.geometry(MAIN_WINDOW_GEOMETRY)
         self.minsize(*MIN_MAIN_WINDOW_SIZE)
         self.resizable(False, False)
+        
+        # Register signal handler for single-instance "wake up"
+        signal.signal(signal.SIGUSR1, self._handle_sigusr1)
         
         # Apply standard padding to the main window
         self.container = ttk.Frame(self, padding=(PAD_X, PAD_Y))
@@ -98,6 +102,12 @@ class VoiceMintUI(tk.Tk):
         logger.info("UI: Restoring from tray.")
         self.after(0, self.deiconify)
         self.after(0, self.focus_force)
+
+    def _handle_sigusr1(self, signum, frame):
+        """Called when a second instance tries to launch."""
+        logger.info("UI: SIGUSR1 received. Restoring window.")
+        self._restore_from_tray()
+        messagebox.showinfo("VoiceMint", "VoiceMint is already running.")
 
     def _on_start_clicked(self):
         from ui.tray import get_tray_manager

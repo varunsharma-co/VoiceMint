@@ -1,6 +1,6 @@
 {
   "ACTIVE_STT_PROVIDER": "soniox",
-  "ACTIVE_INJECTION_METHOD": "clipboard",
+  "ACTIVE_INJECTION_METHOD": "uinput",
   "SILENCE_TIMEOUT_SECONDS": 45.0,
   "SAMPLE_RATE": 16000,
   "HOTKEY_START": "<cmd>+u",
