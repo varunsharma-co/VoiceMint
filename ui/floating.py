@@ -2,11 +2,19 @@ import threading
 import tkinter as tk
 from tkinter import ttk
 
-import config
 import utils
 from stt import start_listening, stop_listening
+from ui.constants import (
+    BUTTON_FONT,
+    GLOBAL_FONT,
+    MAIN_WINDOW_GEOMETRY,
+    MIN_MAIN_WINDOW_SIZE,
+    PAD_X,
+    PAD_Y,
+    SMALL_FONT,
+    TITLE_FONT,
+)
 from ui.settings_ui import SettingsPanel
-from ui.constants import MAIN_WINDOW_GEOMETRY, MIN_MAIN_WINDOW_SIZE, GLOBAL_FONT, TITLE_FONT, BUTTON_FONT, SMALL_FONT, PAD_X, PAD_Y
 
 logger = utils.get_logger(__name__)
 
@@ -29,6 +37,7 @@ class VoiceMintUI(tk.Tk):
 
         # Set default font for ttk
         style = ttk.Style()
+        style.theme_use('clam')
         style.configure(".", font=GLOBAL_FONT)
         style.configure("TButton", font=BUTTON_FONT)
         style.configure("Small.TCheckbutton", font=SMALL_FONT)
