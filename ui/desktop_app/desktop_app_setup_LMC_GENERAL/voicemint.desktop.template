@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=VoiceMint
+Comment=Native Linux Mint Voice-Typing Application
+# Replace /PATH/TO/PROJECT with your actual absolute project path
+Exec=/PATH/TO/PROJECT/voicemint/bin/python3 /PATH/TO/PROJECT/main.py
+Icon=/PATH/TO/PROJECT/assets/icon-on-128.png
+Terminal=false
+Type=Application
+Categories=Utility;AudioVideo;
+StartupNotify=true
+Keywords=voice;typing;stt;dictation;
+X-GNOME-Autostart-enabled=true

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=VoiceMint
+Comment=Native Linux Mint Voice-Typing Application
+Exec=/home/varun/Desktop/Projects/Python/VoiceMint/voicemint/bin/python3 /home/varun/Desktop/Projects/Python/VoiceMint/main.py
+Icon=/home/varun/Desktop/Projects/Python/VoiceMint/assets/icon-on-128.png
+Terminal=false
+Type=Application
+Categories=Utility;AudioVideo;
+StartupNotify=true
+Keywords=voice;typing;stt;dictation;
+X-GNOME-Autostart-enabled=true
