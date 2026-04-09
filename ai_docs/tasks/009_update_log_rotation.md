@@ -8,10 +8,10 @@ Replace the static `logging.basicConfig` with a `TimedRotatingFileHandler`. This
 
 ## Implementation
 
-- [ ] **Task 1:** Update Configuration Management
+- [x] ✓ 2026-04-09 13:43 **Task 1:** Update Configuration Management
   - Files: `config.json`, `config.py`
   - Details: Add `"LOG_KEEP_DAYS": 7` to `config.json` and the default dictionary in `config.py`. Expose it as an integer variable `LOG_KEEP_DAYS` in `config.py`.
-- [ ] **Task 2:** Refactor Logging Setup
+- [x] ✓ 2026-04-09 13:43 **Task 2:** Refactor Logging Setup
   - Files: `utils.py`
   - Details: Import `TimedRotatingFileHandler` from `logging.handlers`. Replace `logging.basicConfig` with a root logger setup or module-level handler. Set `when="midnight"` and `backupCount=LOG_KEEP_DAYS` (loaded from `config.py`). Apply the existing `log_format` and `date_format` using `logging.Formatter`. Ensure handlers are only attached once to prevent duplicate log entries when `get_logger()` is called.
 

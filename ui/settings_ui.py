@@ -1,16 +1,19 @@
 import json
-import sys
 import tkinter as tk
-from tkinter import ttk
 import tkinter.messagebox as messagebox
+from tkinter import ttk
 
 import config
 import utils
-from ui.constants import (
-    SETTINGS_WINDOW_GEOMETRY, PAD_X, PAD_Y, 
-    HISTORY_WINDOW_GEOMETRY, MIN_HISTORY_WINDOW_SIZE, GLOBAL_FONT, BUTTON_FONT
-)
 from history.history import get_recent_history
+from ui.constants import (
+    GLOBAL_FONT,
+    HISTORY_WINDOW_GEOMETRY,
+    MIN_HISTORY_WINDOW_SIZE,
+    PAD_X,
+    PAD_Y,
+    SETTINGS_WINDOW_GEOMETRY,
+)
 
 logger = utils.get_logger(__name__)
 
@@ -236,16 +239,27 @@ class HistoryViewerWindow(tk.Toplevel):
     def _setup_ui(self):
         container = ttk.Frame(self, padding=(PAD_X, PAD_Y))
         container.pack(fill=tk.BOTH, expand=True)
+
+        # Bottom Frame for the Close button
+        bottom_frame = ttk.Frame(container)
+        bottom_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=(10, 0))
+
+        close_btn = ttk.Button(bottom_frame, text="Close", command=self.destroy)
+        close_btn.pack(anchor=tk.CENTER)
+        
+        # Frame for the messages
+        messages_frame = ttk.Frame(container)
+        messages_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
         
         history_msgs = get_recent_history(3)
         history_msgs.reverse() # newest first
         
         if not history_msgs:
-            ttk.Label(container, text="No messages in current session.").pack(pady=20)
+            ttk.Label(messages_frame, text="No messages in current session.").pack(pady=20)
             return
             
         for i, msg in enumerate(history_msgs):
-            card = ttk.LabelFrame(container, text=f"Message {i+1} (Newest)" if i == 0 else f"Message {i+1}")
+            card = ttk.LabelFrame(messages_frame, text=f"Message {i+1} (Newest)" if i == 0 else f"Message {i+1}")
             card.pack(fill=tk.X, pady=(0, 10))
             
             # Main content frame inside card

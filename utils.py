@@ -1,7 +1,10 @@
 import threading
 import queue
 import logging
+from logging.handlers import TimedRotatingFileHandler
 import os
+
+import config
 
 # --- LOGGING SETUP ---
 # Ensure the logs directory exists
@@ -12,12 +15,21 @@ os.makedirs("logs", exist_ok=True)
 log_format = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 date_format = "%d %b %Y; %I:%M:%S %p"
 
-logging.basicConfig(
-    filename="logs/voice_typing_logs.log",
-    level=logging.INFO,
-    format=log_format,
-    datefmt=date_format,
-)
+# Setup root logger with TimedRotatingFileHandler
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
+
+# Only add the handler if it hasn't been added already to prevent duplicates
+if not root_logger.handlers:
+    file_handler = TimedRotatingFileHandler(
+        filename="logs/voice_typing_logs.log",
+        when="midnight",
+        interval=1,
+        backupCount=config.LOG_KEEP_DAYS,
+    )
+    formatter = logging.Formatter(fmt=log_format, datefmt=date_format)
+    file_handler.setFormatter(formatter)
+    root_logger.addHandler(file_handler)
 
 def get_logger(name: str) -> logging.Logger:
     """
