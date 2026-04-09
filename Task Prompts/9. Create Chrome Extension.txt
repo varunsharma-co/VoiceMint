@@ -1,0 +1,58 @@
+We are migrating the LLM-injection feature of VoiceMint to a Chrome Extension connected to our Python backend via WebSockets.
+
+I need you to generate the code for both the Python WebSocket server and the Chrome Extension (Manifest V3). Here is the exact architecture and feature set:
+
+### 1. The Python Backend (`websocket_server.py`)
+
+Create a new standalone asyncio WebSocket server running on `ws://localhost:6468`. This will run alongside my main Tkinter app.
+
+- **Initialization Route (`action: "init"`):** When the extension connects, it will ask for UI data. The server must:
+    1. Read the `LLM/Prompts/` directory, strip the `01_` style prefixes, and return the list of available system prompts.
+    2. Read the `config.json` for the default LLM Provider (e.g., Gemini 2.5 Flash Lite) and return it.
+    3. Fetch the most recent message from the `history` module and return it.
+- **LLM Request Route (`action: "format"`):** Receive the selected text, the chosen prompt, and the provider from the extension. Make the LLM API call, and return the formatted response.
+
+### 2. Chrome Extension: Manifest & Background (`manifest.json` & `background.js`)
+
+- **Manifest V3:** Request permissions for `activeTab`, `scripting`, `contextMenus`, and `storage`.
+- **Keyboard Shortcut:** Hardcode a command for `Ctrl+Y` (Mac: `Command+Y`) tied to the `_execute_action` event so it opens the popup natively.
+- **Context Menu:** Create a right-click menu item: "Send to VoiceMint". When clicked on highlighted text, it should ideally trigger the WebSocket `format` action directly in the background and use a content script to replace the highlighted text on the page with the LLM response.
+
+### 3. Chrome Extension: UI (`popup.html`, `popup.css`, `popup.js`)
+
+Replicate a clean, modern UI with a Dark/Light mode toggle (save the user's preference in `chrome.storage.local`).
+
+- **Layout (Top to Bottom):**
+    - Header: "VoiceMint" + Dark Mode Toggle Switch.
+    - **Input Section:** * A `<textarea>` for the input text.
+        - A small inline SVG button below/inside the textarea that says "Use last voice-typed message" (clicking this injects the history message fetched during init).
+        - A small inline SVG "Copy" icon.
+    - **Controls Section:** Two side-by-side `<select>` dropdowns: "Choose a System Prompt" and "Choose a Format Provider".
+    - **Action:** A prominent blue "Format Text" button.
+    - **Output Section:** A second `<textarea>` for the LLM response, also featuring an inline SVG "Copy" icon.
+- **Logic (`popup.js`):**
+    - On load, connect to `ws://localhost:8642`.
+    - Execute a script in the active tab to grab `window.getSelection().toString()`. If text exists, populate the top textarea.
+    - Send the `init` request to the WebSocket to populate the dropdowns and the "last voice message" variable.
+    - Handle the "Format Text" click: send the payload to the WebSocket, show a loading state, and populate the bottom textarea with the response.
+
+Expand the VoiceMint ecosystem by building a Chrome Extension that acts as a bridge for LLM-powered text manipulation. This extension will communicate with the existing Python backend via a persistent WebSocket connection.
+
+**Core Requirements:**
+
+- **Backend Connection:** Establish a WebSocket server in the Python codebase on port **6468** (M-I-N-T). This server must handle initialization (sending system prompts and recent history to the extension) and LLM request processing.
+- **The LLM Pipeline:** Use the existing `LLM/Providers` logic. The extension should allow the user to select a system prompt (dynamically loaded from the `LLM/Prompts` folder) and a provider to format highlighted or manual text.
+- **Extension Triggers:** * **Keyboard Shortcut:** Bind `Ctrl+Y` (or `Cmd+Y`) to natively open the extension popup and automatically ingest any currently highlighted text on the page.
+    - **Context Menu:** Add a "Send to VoiceMint" option to the browser's right-click menu for highlighted text.
+- **UI/UX (Referencing Provided Screenshots):** * The extension must support a Dark/Light mode toggle.
+    - It should feature two text areas (Input and Output) with small, non-intrusive copy icons.
+    - Include a "Use last voice-typed message" feature to pre-fill the input with the latest entry from the VoiceMint history.
+    - Dropdowns for Prompt and Provider selection must be populated dynamically from the backend upon connection.
+
+**Guidelines for Implementation:**
+
+- **Separation of Concerns:** Organize the new logic (both Python and JavaScript) so that UI, communication, and business logic are cleanly separated.
+- **Contextual Awareness:** Review the current structure of the VoiceMint codebase (including `config.json`, `utils.py`, and the `history` modules) to ensure the new WebSocket server and LLM integration feel like a native extension of the existing project, not a bolted-on hack.
+
+
+

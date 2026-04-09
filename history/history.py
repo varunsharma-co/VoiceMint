@@ -19,13 +19,17 @@ _pending_sessions: List[str] = []
 _lock = threading.Lock()
 
 def add_session(text: str) -> None:
-    """Adds a finalized session text to the pending memory buffer."""
+    """Adds a finalized session text to the pending memory buffer and truncates to MAX_HISTORY_MESSAGES."""
     text = text.strip()
     if not text:
         return
         
     with _lock:
         _pending_sessions.append(text)
+        # Keep only the last N messages in RAM to match the disk limit
+        if len(_pending_sessions) > MAX_HISTORY_MESSAGES:
+            del _pending_sessions[:-MAX_HISTORY_MESSAGES]
+            
     logger.info(f"Session added to memory buffer. Pending sessions: {len(_pending_sessions)}")
 
 def flush_history() -> None:
