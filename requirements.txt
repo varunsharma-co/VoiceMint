@@ -3,5 +3,4 @@ websockets
 python-dotenv
 numpy
 pyperclip
-customtkinter
 pynput

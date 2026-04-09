@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "VoiceMint Extension",
+  "version": "1.0",
+  "description": "VoiceMint Chrome Extension for LLM Formatting.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "contextMenus",
+    "storage"
+  ],
+  "host_permissions": [
+    "ws://127.0.0.1:6468/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "128": "icons/icon-128.png"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Y",
+        "mac": "Command+Y"
+      }
+    }
+  }
+}

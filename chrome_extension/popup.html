@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VoiceMint</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>VoiceMint</h1>
+        <div class="header-controls">
+          <label class="theme-switch" for="theme-checkbox">
+            <input type="checkbox" id="theme-checkbox" />
+            <div class="slider round"></div>
+          </label>
+        </div>
+      </header>
+
+      <section class="scratchpad-section">
+        <div class="textarea-container">
+          <textarea id="transcript-output" placeholder="Text to format..."></textarea>
+        </div>
+        <div class="action-row">
+          <button id="use-last-btn" class="text-btn" title="Use last voice-typed message">Use last voice message</button>
+          <button class="copy-icon-btn" id="copy-raw-btn" title="Copy text">
+            <img src="icons/copy-icon.svg" alt="Copy" />
+          </button>
+        </div>
+      </section>
+
+      <section class="llm-controls">
+        <div class="control-group">
+          <label for="prompt-select">Choose a System Prompt</label>
+          <select id="prompt-select">
+            <option value="">Loading prompts...</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="llm-provider-select">Choose a Format Provider</label>
+          <select id="llm-provider-select">
+            <option value="">Loading providers...</option>
+          </select>
+        </div>
+        <button id="format-button">Format Text</button>
+      </section>
+
+      <section id="formatted-output-container" class="scratchpad-section hidden">
+        <div class="textarea-container">
+          <textarea id="formatted-output" placeholder="Formatted text will appear here..."></textarea>
+        </div>
+        <button class="copy-icon-btn" id="copy-formatted-btn" title="Copy text">
+          <img src="icons/copy-icon.svg" alt="Copy" />
+        </button>
+      </section>
+    </main>
+    <script src="popup.js" defer></script>
+  </body>
+</html>

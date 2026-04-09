@@ -8,6 +8,7 @@ import utils
 from text_injection import close_injector, get_injector
 import ui
 import stt
+import llm
 
 def queue_consumer() -> None:
     """
@@ -64,6 +65,10 @@ if __name__ == "__main__":
     consumer_thread = threading.Thread(target=queue_consumer, daemon=False)
     consumer_thread.start()
 
+    # LLM WebSocket thread
+    llm_thread = threading.Thread(target=llm.start_llm_server, daemon=True)
+    llm_thread.start()
+
     # Tray on background thread (it manages its own GLib/GTK context)
     tray_manager = ui.get_tray_manager()
     tray_thread = threading.Thread(target=tray_manager.run, daemon=True)
@@ -93,6 +98,7 @@ if __name__ == "__main__":
 
     # 2. Wait for consumer to finish final history writes
     consumer_thread.join(timeout=2.0)
+    llm_thread.join(timeout=2.0)
 
     # 3. Clean up virtual hardware
     close_injector()

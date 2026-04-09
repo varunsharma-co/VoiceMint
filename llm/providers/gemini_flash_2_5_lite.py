@@ -1,37 +1,38 @@
-import asyncio
-
-from dotenv import load_dotenv
+import os
+from typing import Optional
 from google import genai
 from google.genai import types
 
-load_dotenv()
+import utils
 
-client = genai.Client()
+logger = utils.get_logger(__name__)
 
-single_prompt = "Whats the capital of India?"
+async def format_text(text: str, system_prompt: Optional[str] = None) -> str:
+    """
+    Calls the Gemini 2.5 Flash Lite API to format text.
+    """
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        logger.error("GEMINI_API_KEY not found in environment.")
+        return "Error: GEMINI_API_KEY is not set."
 
-system_prompt = "Answer as if you are a big Narendra Modi fan"
+    client = genai.Client(api_key=api_key)
 
-async def gemini_call_flash_2_5_lite(prompt: str) -> str:
+    try:
+        kwargs = {}
+        if system_prompt:
+            kwargs["config"] = types.GenerateContentConfig(
+                system_instruction=system_prompt,
+            )
 
-    response = await client.aio.models.generate_content(
-        model="gemini-2.5-flash-lite",
-        contents=[
-            types.Content(parts=[types.Part.from_text(text=prompt)], role="user")
-        ],
-        config=types.GenerateContentConfig(
-            system_instruction=system_prompt,
+        response = await client.aio.models.generate_content(
+            model="gemini-2.5-flash-lite",
+            contents=[
+                types.Content(parts=[types.Part.from_text(text=text)], role="user")
+            ],
+            **kwargs
         )
-    )
-
-    return response.text
-
-
-async def main():
-
-    result = await gemini_call_flash_2_5_lite(single_prompt)
-    
-    print(f"API Call output is {result}")
-
-
-asyncio.run(main())
+        return response.text
+    except Exception as e:
+        logger.error(f"Error calling Gemini API: {e}")
+        return f"Error: {e}"

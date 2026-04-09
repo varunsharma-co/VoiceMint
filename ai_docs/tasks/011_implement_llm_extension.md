@@ -109,7 +109,7 @@ VoiceMint/
 │   ├── websocket_server.py          # The asyncio WebSocket host
 │   └── __init__.py                  # Exposes start_llm_server()
 │
-└── Voice-Typing-Extension/          # (New Extension Root)
+└── chrome_extension/          # (New Extension Root)
     ├── manifest.json
     ├── background.js
     ├── popup.html
@@ -139,24 +139,24 @@ VoiceMint/
 
 ### Phase 1: Python LLM Backend Refactor
 **Goal:** Setup the LLM module to handle structured requests.
-- [ ] **Task 1.1:** Update `config.py` and `config.json` with `DEFAULT_LLM_PROVIDER`.
-- [ ] **Task 1.2:** Modify `llm/providers/gemini_flash_2_5_lite.py` to be a stateless async function.
-- [ ] **Task 1.3:** Create `llm/manager.py` to load prompts from files and route generation requests.
+- [x] ✓ 2026-04-09 20:36 **Task 1.1:** Update `config.py` and `config.json` with `DEFAULT_LLM_PROVIDER`.
+- [x] ✓ 2026-04-09 20:36 **Task 1.2:** Modify `llm/providers/gemini_flash_2_5_lite.py` to be a stateless async function.
+- [x] ✓ 2026-04-09 20:36 **Task 1.3:** Create `llm/manager.py` to load prompts from files and route generation requests.
 
 ### Phase 2: Python WebSocket Server
 **Goal:** Establish the `ws://localhost:6468` server.
-- [ ] **Task 2.1:** Create `llm/websocket_server.py` using the `websockets` library.
-- [ ] **Task 2.2:** Expose `start_llm_server()` and `stop_llm_server()` in `llm/__init__.py`.
-- [ ] **Task 2.3:** Update `main.py` to start and safely stop the LLM server alongside the consumer thread.
+- [x] ✓ 2026-04-09 20:36 **Task 2.1:** Create `llm/websocket_server.py` using the `websockets` library.
+- [x] ✓ 2026-04-09 20:36 **Task 2.2:** Expose `start_llm_server()` and `stop_llm_server()` in `llm/__init__.py`.
+- [x] ✓ 2026-04-09 20:36 **Task 2.3:** Update `main.py` to start and safely stop the LLM server alongside the consumer thread.
 
 ### Phase 3: Chrome Extension Skeleton & UI
 **Goal:** Build the Manifest V3 structural files and UI.
-- [ ] **Task 3.1:** Create `manifest.json`, `background.js`, `popup.html`, and `popup.css`.
-- [ ] **Task 3.2:** Implement Dark/Light mode toggle styling.
+- [x] ✓ 2026-04-09 20:36 **Task 3.1:** Create `manifest.json`, `background.js`, `popup.html`, and `popup.css`.
+- [x] ✓ 2026-04-09 20:36 **Task 3.2:** Implement Dark/Light mode toggle styling.
 
 ### Phase 4: Chrome Extension Logic
 **Goal:** Implement the logic in `popup.js` and `background.js`.
-- [ ] **Task 4.1:** Connect `popup.js` to `ws://localhost:6468`.
-- [ ] **Task 4.2:** Implement the `init` action (load prompts, providers, fetch last message).
-- [ ] **Task 4.3:** Implement `format` action (send text, receive and display formatted response).
-- [ ] **Task 4.4:** Add Context Menu and Keyboard Shortcut logic to `background.js` and script injection logic.
+- [x] ✓ 2026-04-09 20:36 **Task 4.1:** Connect `popup.js` to `ws://localhost:6468`.
+- [x] ✓ 2026-04-09 20:36 **Task 4.2:** Implement the `init` action (load prompts, providers, fetch last message).
+- [x] ✓ 2026-04-09 20:36 **Task 4.3:** Implement `format` action (send text, receive and display formatted response).
+- [x] ✓ 2026-04-09 20:36 **Task 4.4:** Add Context Menu and Keyboard Shortcut logic to `background.js` and script injection logic.

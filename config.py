@@ -16,6 +16,12 @@ class STTProvider(Enum):
     ASSEMBLYAI = "assemblyai"
 
 
+class LLMProvider(Enum):
+    """Enumeration of supported LLM API providers."""
+
+    GEMINI_FLASH_2_5_LITE = "gemini_flash_2_5_lite"
+
+
 class InjectionMethod(Enum):
     """Enumeration of supported text injection methods."""
 
@@ -39,6 +45,7 @@ _DEFAULT_CONFIG = {
     "FAILSAFE_FLUSH_MULTIPLIER": 1.6,
     "CLIPBOARD_RESTORE_DELAY_SEC": 0.5,
     "LOG_KEEP_DAYS": 7,
+    "DEFAULT_LLM_PROVIDER": "gemini_flash_2_5_lite",
 }
 
 def _load_config() -> dict:
@@ -70,6 +77,11 @@ try:
     ACTIVE_INJECTION_METHOD = InjectionMethod(_current_config["ACTIVE_INJECTION_METHOD"])
 except ValueError:
     ACTIVE_INJECTION_METHOD = InjectionMethod.UINPUT
+
+try:
+    DEFAULT_LLM_PROVIDER = LLMProvider(_current_config["DEFAULT_LLM_PROVIDER"])
+except (ValueError, KeyError):
+    DEFAULT_LLM_PROVIDER = LLMProvider.GEMINI_FLASH_2_5_LITE
 
 SILENCE_TIMEOUT_SECONDS = float(_current_config["SILENCE_TIMEOUT_SECONDS"])
 SAMPLE_RATE = int(_current_config["SAMPLE_RATE"])
