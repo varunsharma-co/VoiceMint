@@ -80,5 +80,22 @@ def start_background_timer() -> None:
     timer_thread.start()
     logger.info(f"History background timer started ({config.HISTORY_SAVE_INTERVAL_MINUTES} min interval).")
 
+def get_recent_history(limit: int = 3) -> List[str]:
+    """Retrieves the most recent history messages, combining disk and memory buffer."""
+    history_list: List[str] = []
+    if os.path.exists(HISTORY_FILE):
+        try:
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, list):
+                    history_list = data
+        except (json.JSONDecodeError, OSError) as e:
+            logger.warning(f"Failed to read existing {HISTORY_FILE}: {e}")
+            
+    with _lock:
+        history_list.extend(_pending_sessions)
+        
+    return history_list[-limit:] if history_list else []
+
 # Register the hard flush hook to run on program exit/crash
 atexit.register(flush_history)

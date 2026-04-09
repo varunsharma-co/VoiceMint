@@ -1,0 +1,40 @@
+Let's add a new feature to the Settings UI to view session history, and slightly refine the main Settings window layout.
+
+Here is the exact architecture and UI layout I want you to implement:
+
+**1. Update `ui/constants.py`**
+Add minimum sizes and geometry for the new history viewer window. 
+* Add `HISTORY_WINDOW_GEOMETRY = "550x450"`
+* Add `MIN_HISTORY_WINDOW_SIZE = (550, 450)`
+
+**2. Update Settings UI (`settings_ui.py`)**
+**Part A: The History Tab**
+In the `_build_history_tab()` method, beneath the existing `Max History Messages` and `History Save Interval` entries:
+* Add a `ttk.Separator` to create a visual break.
+* Add a `ttk.Button` labeled "View Last 3 Messages".
+* When clicked, this button should open a new `Toplevel` window called `HistoryViewerWindow`.
+
+**Part B: The Bottom Action Buttons**
+Update the bottom frame of the Settings window. Instead of just a single "Save & Exit" button, I want two buttons side-by-side and centered perfectly.
+* Create a `ttk.Frame` inside the bottom frame specifically for centering.
+* Inside this frame, pack two buttons side-by-side (`side=tk.LEFT`):
+  1. **"Save & Exit"**: Keeps its current functionality (saves, clears `app_running`, and destroys the window).
+  2. **"Close"**: A new button that simply calls `self.destroy()` to close the settings dialog without saving and without shutting down the app.
+* Keep the existing *Note* label centered directly below these buttons.
+
+**3. Create `HistoryViewerWindow` (New class in `settings_ui.py` or a new `ui/history_viewer.py` file)**
+This window must display the last 3 messages from the active session history.
+* **Window Setup:** Apply `HISTORY_WINDOW_GEOMETRY`, the `MIN_HISTORY_WINDOW_SIZE`, and make the window modal (`grab_set()`) so the user must close it before interacting with the settings again.
+* **Data Retrieval:** Fetch the last 3 messages from the active session's memory (e.g., from your `history.py` manager or wherever the active session logs are currently stored). If there are fewer than 3 messages, only show what is available. If empty, show a single `ttk.Label` saying "No messages in current session."
+
+**4. The "Card" Layout for Messages**
+For each of the retrieved messages, build a "Card" UI from top to bottom:
+* Use a `ttk.LabelFrame` for each message (e.g., `text="Message 1 (Newest)"`).
+* Inside the `LabelFrame`, create a horizontal layout:
+    * **Left Side (Text):** A `tk.Text` widget set to `height=3` and `wrap="word"`. Apply the `GLOBAL_FONT`. Insert the message text into it. 
+    * **Scrollbar:** Attach a `ttk.Scrollbar` to the `tk.Text` widget.
+    * **Read-Only State:** After inserting the text, set the `tk.Text` widget's state to `tk.DISABLED` so it is read-only but still scrollable/selectable.
+    * **Right Side (Button):** A `ttk.Button` labeled "Copy" (use `BUTTON_FONT` and a small width, like `width=6`).
+* **Copy Functionality:** When the "Copy" button is clicked, it must clear the system clipboard, append the specific message's full text to the clipboard (`self.clipboard_clear()` and `self.clipboard_append()`), and change the button text temporarily to "Copied!" for 1.5 seconds using `.after()` before reverting to "Copy" for good UX feedback.
+
+

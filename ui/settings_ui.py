@@ -6,7 +6,11 @@ import tkinter.messagebox as messagebox
 
 import config
 import utils
-from ui.constants import SETTINGS_WINDOW_GEOMETRY, PAD_X, PAD_Y
+from ui.constants import (
+    SETTINGS_WINDOW_GEOMETRY, PAD_X, PAD_Y, 
+    HISTORY_WINDOW_GEOMETRY, MIN_HISTORY_WINDOW_SIZE, GLOBAL_FONT, BUTTON_FONT
+)
+from history.history import get_recent_history
 
 logger = utils.get_logger(__name__)
 
@@ -74,8 +78,14 @@ class SettingsPanel(tk.Toplevel):
         bottom_frame = ttk.Frame(container)
         bottom_frame.pack(fill=tk.X)
 
-        self.save_btn = ttk.Button(bottom_frame, text="Save & Exit", command=self._on_save)
-        self.save_btn.pack(pady=(0, 5))
+        btn_frame = ttk.Frame(bottom_frame)
+        btn_frame.pack(pady=(0, 5))
+
+        self.save_btn = ttk.Button(btn_frame, text="Save & Exit", command=self._on_save)
+        self.save_btn.pack(side=tk.LEFT, padx=5)
+
+        self.close_btn = ttk.Button(btn_frame, text="Close", command=self.destroy)
+        self.close_btn.pack(side=tk.LEFT, padx=5)
 
         note_label = ttk.Label(
             bottom_frame, 
@@ -147,7 +157,15 @@ class SettingsPanel(tk.Toplevel):
         self.history_interval_entry = ttk.Entry(self.tab_history, textvariable=self.history_interval_var)
         self.history_interval_entry.grid(row=1, column=1, pady=PAD_Y, sticky=tk.EW)
 
+        ttk.Separator(self.tab_history, orient=tk.HORIZONTAL).grid(row=2, column=0, columnspan=2, sticky=tk.EW, pady=10)
+        
+        self.view_history_btn = ttk.Button(self.tab_history, text="View Last 3 Messages", command=self._open_history_viewer)
+        self.view_history_btn.grid(row=3, column=0, columnspan=2, pady=(0, PAD_Y))
+
         self.tab_history.columnconfigure(1, weight=1)
+
+    def _open_history_viewer(self):
+        HistoryViewerWindow(self)
 
     def _build_clipboard_tab(self):
         ttk.Label(self.tab_clipboard, text="Ideal Flush Word Count:").grid(row=0, column=0, padx=(0, PAD_X), pady=PAD_Y, sticky=tk.W)
@@ -197,3 +215,70 @@ class SettingsPanel(tk.Toplevel):
             get_tray_manager().on_quit(None)
         except Exception:
             pass
+
+
+class HistoryViewerWindow(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title("Session History")
+        self.geometry(HISTORY_WINDOW_GEOMETRY)
+        self.minsize(*MIN_HISTORY_WINDOW_SIZE)
+        
+        self.transient(parent)
+        self.bind("<Map>", self._on_map)
+        
+        self._setup_ui()
+        
+    def _on_map(self, event):
+        self.grab_set()
+        self.unbind("<Map>")
+        
+    def _setup_ui(self):
+        container = ttk.Frame(self, padding=(PAD_X, PAD_Y))
+        container.pack(fill=tk.BOTH, expand=True)
+        
+        history_msgs = get_recent_history(3)
+        history_msgs.reverse() # newest first
+        
+        if not history_msgs:
+            ttk.Label(container, text="No messages in current session.").pack(pady=20)
+            return
+            
+        for i, msg in enumerate(history_msgs):
+            card = ttk.LabelFrame(container, text=f"Message {i+1} (Newest)" if i == 0 else f"Message {i+1}")
+            card.pack(fill=tk.X, pady=(0, 10))
+            
+            # Main content frame inside card
+            content_frame = ttk.Frame(card, padding=5)
+            content_frame.pack(fill=tk.BOTH, expand=True)
+            
+            # Text and scrollbar frame
+            text_frame = ttk.Frame(content_frame)
+            text_frame.pack(fill=tk.BOTH, expand=True)
+            
+            text_widget = tk.Text(text_frame, height=3, wrap="word", font=GLOBAL_FONT)
+            text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            
+            scrollbar = ttk.Scrollbar(text_frame, command=text_widget.yview)
+            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            text_widget.configure(yscrollcommand=scrollbar.set)
+            
+            text_widget.insert("1.0", msg)
+            text_widget.configure(state=tk.DISABLED)
+            
+            # Button frame below text
+            btn_frame = ttk.Frame(content_frame)
+            btn_frame.pack(fill=tk.X, pady=(5, 0))
+            
+            copy_btn = ttk.Button(btn_frame, text="Copy", width=8)
+            copy_btn.configure(command=lambda m=msg, b=copy_btn: self._copy_text(m, b))
+            copy_btn.pack(side=tk.LEFT)
+            
+    def _copy_text(self, text, btn):
+        self.clipboard_clear()
+        self.clipboard_append(text)
+        self.update()
+        
+        original_text = btn.cget("text")
+        btn.configure(text="Copied!")
+        self.after(1500, lambda: btn.configure(text=original_text))
