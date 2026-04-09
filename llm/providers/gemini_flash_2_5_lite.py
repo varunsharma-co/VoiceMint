@@ -12,7 +12,7 @@ single_prompt = "Whats the capital of India?"
 
 system_prompt = "Answer as if you are a big Narendra Modi fan"
 
-async def gemini_call(prompt: str) -> str:
+async def gemini_call_flash_2_5_lite(prompt: str) -> str:
 
     response = await client.aio.models.generate_content(
         model="gemini-2.5-flash-lite",
@@ -29,7 +29,7 @@ async def gemini_call(prompt: str) -> str:
 
 async def main():
 
-    result = await gemini_call(single_prompt)
+    result = await gemini_call_flash_2_5_lite(single_prompt)
     
     print(f"API Call output is {result}")
 
