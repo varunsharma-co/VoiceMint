@@ -7,7 +7,8 @@
   --button-disabled-text: #7f8c8d;
 }
 
-html, body {
+html,
+body {
   width: auto;
   min-width: 480px;
   margin: 0;
@@ -57,9 +58,9 @@ body.dark-mode {
 }
 
 .container {
-  width: 450px;
+  width: 500px;
   background-color: var(--container-bg);
-  padding: 20px;
+  padding: 25px;
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -123,9 +124,12 @@ header h1 {
 .slider {
   position: absolute;
   cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: #ccc;
-  transition: .4s;
+  transition: 0.4s;
 }
 
 .slider:before {
@@ -136,7 +140,7 @@ header h1 {
   left: 3px;
   bottom: 3px;
   background-color: white;
-  transition: .4s;
+  transition: 0.4s;
 }
 
 input:checked + .slider {
@@ -171,7 +175,7 @@ textarea {
   width: 100%;
   min-height: 120px;
   padding: 12px;
-  padding-bottom: 40px; 
+  padding-bottom: 40px;
   font-family: inherit;
   font-size: var(--textarea-font-size);
   line-height: 1.5;
