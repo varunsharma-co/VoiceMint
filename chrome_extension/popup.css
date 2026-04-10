@@ -1,7 +1,7 @@
 :root {
-  --ui-font-size: 14px;
-  --textarea-font-size: 14px;
-  --label-font-size: 12px;
+  --ui-font-size: 15px;
+  --textarea-font-size: 15px;
+  --label-font-size: 13px;
   --accent-color: #3498db;
   --button-disabled-bg: #bdc3c7;
   --button-disabled-text: #7f8c8d;
@@ -16,6 +16,7 @@ html, body {
 }
 
 body {
+  /* Default Theme: LIGHT */
   --bg-color: #f4f7f9;
   --container-bg: #ffffff;
   --text-color: #333;
@@ -36,6 +37,7 @@ body {
 }
 
 body.dark-mode {
+  /* Dark Theme Overrides */
   --bg-color: #121212;
   --container-bg: #1e1e1e;
   --text-color: #e0e0e0;
@@ -48,6 +50,8 @@ body.dark-mode {
   --button-primary-text: #282c34;
   --copy-icon-bg: rgba(255, 255, 255, 0.1);
   --copy-icon-filter: invert(100%) grayscale(100%) brightness(2);
+
+  /* Dark Theme Button Disabled Overrides */
   --button-disabled-bg: #555;
   --button-disabled-text: #aaa;
 }
@@ -72,13 +76,92 @@ header {
 
 header h1 {
   font-weight: 600;
-  font-size: 1.1em;
+  font-size: 1.4em;
   margin: 0;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#reset-state-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-color-light);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 26px;
+  padding: 0;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+#reset-state-btn:hover {
+  opacity: 1;
+  border-color: var(--text-color);
+}
+
+/* Theme Switch Styling */
+.theme-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+}
+
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: var(--accent-color);
+}
+
+input:checked + .slider:before {
+  transform: translateX(18px);
+}
+
+.slider.round {
+  border-radius: 22px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
 }
 
 .scratchpad-section {
   width: 100%;
+}
+
+.textarea-container {
   position: relative;
+  width: 100%;
 }
 
 textarea {
@@ -88,6 +171,7 @@ textarea {
   width: 100%;
   min-height: 120px;
   padding: 12px;
+  padding-bottom: 40px; 
   font-family: inherit;
   font-size: var(--textarea-font-size);
   line-height: 1.5;
@@ -128,6 +212,9 @@ textarea:focus {
 }
 
 .copy-icon-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
   background: none;
   border: none;
   cursor: pointer;
@@ -137,11 +224,12 @@ textarea:focus {
   align-items: center;
   justify-content: center;
   opacity: 0.6;
+  transition: all 0.2s ease;
 }
 
 .copy-icon-btn img {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   filter: var(--copy-icon-filter);
 }
 
@@ -201,54 +289,6 @@ select:focus {
   background-color: var(--button-disabled-bg);
   color: var(--button-disabled-text);
   cursor: not-allowed;
-}
-
-.theme-switch {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 20px;
-}
-
-.theme-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 14px;
-  width: 14px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: .4s;
-}
-
-input:checked + .slider {
-  background-color: var(--accent-color);
-}
-
-input:checked + .slider:before {
-  transform: translateX(20px);
-}
-
-.slider.round {
-  border-radius: 20px;
-}
-
-.slider.round:before {
-  border-radius: 50%;
 }
 
 .hidden {

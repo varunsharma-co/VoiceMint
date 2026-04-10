@@ -16,16 +16,19 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "128": "icons/icon-off-128.png"
+    }
   },
   "icons": {
-    "128": "icons/icon-128.png"
+    "128": "icons/icon-on-128.png"
   },
   "commands": {
     "_execute_action": {
       "suggested_key": {
-        "default": "Ctrl+Y",
-        "mac": "Command+Y"
+        "default": "Ctrl+M",
+        "mac": "Command+M"
       }
     }
   }
