@@ -1,9 +1,11 @@
 import threading
+
 from pynput import keyboard
 
 import config
 import utils
 from stt import start_listening, stop_listening
+from ui.tray import get_tray_manager
 
 logger = utils.get_logger(__name__)
 
@@ -24,7 +26,6 @@ def _suppress_typed_character():
     except Exception as ex:
         logger.error(f"Failed to suppress hotkey character via pynput Controller: {ex}")
 
-from ui.tray import get_tray_manager
 
 def on_activate_start():
     """Triggered when the start hotkey is pressed."""
@@ -46,6 +47,12 @@ def on_activate_stop():
         # stop_listening() will stop the mic and close the websockets, unblocking the start_listening thread
         stop_listening()
 
+def on_activate_copy_last():
+    """Triggered when the copy last message hotkey is pressed."""
+    _suppress_typed_character()
+    logger.info("Hotkey triggered: COPY last message")
+    utils.paste_last_message()
+
 def start_hotkey_listener():
     """Starts the global hotkey listener in a daemon thread using pynput.
     
@@ -53,14 +60,15 @@ def start_hotkey_listener():
     """
     hotkeys = {
         config.HOTKEY_START: on_activate_start,
-        config.HOTKEY_STOP: on_activate_stop
+        config.HOTKEY_STOP: on_activate_stop,
+        config.HOTKEY_COPY_LAST: on_activate_copy_last
     }
     
     try:
         listener = keyboard.GlobalHotKeys(hotkeys)
         listener.daemon = True
         listener.start()
-        logger.info(f"Global hotkey listener started. Start: {config.HOTKEY_START}, Stop: {config.HOTKEY_STOP}")
+        logger.info(f"Global hotkey listener started. Start: {config.HOTKEY_START}, Stop: {config.HOTKEY_STOP}, Copy Last: {config.HOTKEY_COPY_LAST}")
         return listener
     except Exception as e:
         logger.error(f"Failed to start hotkey listener: {e}")

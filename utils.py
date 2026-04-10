@@ -81,3 +81,98 @@ app_running = threading.Event()
 # STT providers push strings here, the injection engine pulls from here.
 transcript_queue: queue.Queue[str] = queue.Queue()
 
+# --- UTILITY FUNCTIONS ---
+def paste_last_message() -> None:
+    """
+    Fetches the last voice-typed message from history, backups the current clipboard,
+    copies the message to the clipboard, pastes it, and restores the clipboard.
+    """
+    import time
+    import pyperclip
+    import subprocess
+    import shutil
+    import os
+    from history import get_recent_history
+    from pynput import keyboard
+    from config import CLIPBOARD_RESTORE_DELAY_SEC
+    
+    logger = get_logger(__name__)
+    recent_messages = get_recent_history(limit=1)
+    
+    if not recent_messages or not recent_messages[0]:
+        logger.info("No recent message found in history to paste.")
+        return
+        
+    last_message = recent_messages[0] + " "
+    is_wayland = os.environ.get("WAYLAND_DISPLAY") is not None
+
+    def get_primary() -> str:
+        try:
+            if is_wayland and shutil.which("wl-paste"):
+                res = subprocess.run(["wl-paste", "--primary"], capture_output=True, text=True)
+                return res.stdout if res.returncode == 0 else ""
+            if shutil.which("xclip"):
+                res = subprocess.run(["xclip", "-selection", "primary", "-o"], capture_output=True, text=True)
+                return res.stdout if res.returncode == 0 else ""
+            if shutil.which("xsel"):
+                res = subprocess.run(["xsel", "--primary", "--output"], capture_output=True, text=True)
+                return res.stdout if res.returncode == 0 else ""
+        except: pass
+        return ""
+
+    def set_primary(text: str):
+        try:
+            if is_wayland and shutil.which("wl-copy"):
+                subprocess.run(["wl-copy", "--primary"], input=text.encode("utf-8"), check=True)
+                return
+            if shutil.which("xclip"):
+                subprocess.run(["xclip", "-selection", "primary"], input=text.encode("utf-8"), check=True)
+                return
+            if shutil.which("xsel"):
+                subprocess.run(["xsel", "--primary", "--input"], input=text.encode("utf-8"), check=True)
+                return
+        except: pass
+
+    # 1. Backup
+    backup_clipboard = ""
+    backup_primary = ""
+    try:
+        backup_clipboard = pyperclip.paste()
+        backup_primary = get_primary()
+    except Exception as ex:
+        logger.warning(f"Could not backup clipboard: {ex}")
+        
+    # 2. Copy new message
+    try:
+        pyperclip.copy(last_message)
+        set_primary(last_message)
+    except Exception as ex:
+        logger.warning(f"Could not set clipboard: {ex}")
+
+    time.sleep(0.05)
+    
+    # 3. Paste via Shift+Insert using pynput
+    try:
+        controller = keyboard.Controller()
+        # Release command/super in case it's still held down
+        controller.release(keyboard.Key.cmd)
+        
+        controller.press(keyboard.Key.shift)
+        controller.press(keyboard.Key.insert)
+        controller.release(keyboard.Key.insert)
+        controller.release(keyboard.Key.shift)
+    except Exception as ex:
+        logger.error(f"Error simulating paste keys: {ex}")
+        
+    # 4. Wait for paste to complete
+    time.sleep(CLIPBOARD_RESTORE_DELAY_SEC)
+    
+    # 5. Restore
+    try:
+        pyperclip.copy(backup_clipboard)
+        set_primary(backup_primary)
+    except Exception as ex:
+        logger.warning(f"Could not restore clipboard: {ex}")
+            
+    logger.info("Pasted last message and restored clipboard.")
+

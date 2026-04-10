@@ -39,6 +39,7 @@ _DEFAULT_CONFIG = {
     "SAMPLE_RATE": 16000,
     "HOTKEY_START": "<cmd>+u",
     "HOTKEY_STOP": "<cmd>+i",
+    "HOTKEY_COPY_LAST": "<cmd>+h",
     "MAX_HISTORY_MESSAGES": 5,
     "HISTORY_SAVE_INTERVAL_MINUTES": 60.0,
     "IDEAL_FLUSH_WORD_COUNT": 8,
@@ -89,6 +90,7 @@ SAMPLE_RATE = int(_current_config["SAMPLE_RATE"])
 # --- HOTKEY SETTINGS ---
 HOTKEY_START = str(_current_config["HOTKEY_START"])
 HOTKEY_STOP = str(_current_config["HOTKEY_STOP"])
+HOTKEY_COPY_LAST = str(_current_config.get("HOTKEY_COPY_LAST", "<cmd>+h"))
 
 # --- SESSION HISTORY SETTINGS ---
 MAX_HISTORY_MESSAGES = int(_current_config["MAX_HISTORY_MESSAGES"])
