@@ -4,35 +4,35 @@ This guide provides generalized instructions for setting up VoiceMint as a nativ
 
 ## 🛠️ Phase 1: Preparation
 
-1.  **Identify your project's absolute path.** Open a terminal inside the project folder and run:
+1.  **Identify your project's absolute path.** Open a terminal inside the **root** project folder and run:
     ```bash
     pwd
     ```
     *Copy the output (e.g., `/home/username/Projects/VoiceMint`). This is your `PROJECT_PATH`.*
 
-2.  **Prepare your `.desktop` file.** In this folder, you will find `voicemint.desktop.template`. Open it in a text editor and replace all instances of `/PATH/TO/PROJECT` with your actual `PROJECT_PATH`. Save it as `voicemint.desktop`.
+2.  **Prepare your `.desktop` file.** Locate the template at `ui/desktop_app/voicemint.desktop.template`. Open it in a text editor and replace all instances of `/PATH/TO/PROJECT` with your actual `PROJECT_PATH`. Save the modified file as `ui/desktop_app/voicemint.desktop`.
 
 ---
 
 ## 🚀 Phase 2: Installation
 
 ### 1. Register VoiceMint in the Applications Menu
-Copy your modified `.desktop` file to your local applications directory:
+Run these commands from the **root** project folder to copy your modified `.desktop` file to your local applications directory:
 
 ```bash
 # Make the file executable
-chmod +x voicemint.desktop
+chmod +x ui/desktop_app/voicemint.desktop
 
 # Copy to the applications menu folder
-cp voicemint.desktop ~/.local/share/applications/
+cp ui/desktop_app/voicemint.desktop ~/.local/share/applications/
 ```
 
 ### 2. Enable Autostart on Login (Optional)
-If you want VoiceMint to launch automatically when you log in:
+If you want VoiceMint to launch automatically when you log in, run this from the **root** project folder:
 
 ```bash
 mkdir -p ~/.config/autostart
-cp voicemint.desktop ~/.config/autostart/
+cp ui/desktop_app/voicemint.desktop ~/.config/autostart/
 ```
 
 ---
