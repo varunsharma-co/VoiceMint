@@ -3,21 +3,14 @@ voicemint/
 
 GEMINI.md
 
-Single_Source_of_Truth.md
-
 .env
-
-Template Breakdowns/
-Text Injection Method Testing/
 
 .gitignore
 .aiexclude
 .geminiignore
 
-.gemini/*
-ai_docs/*
-!ai_docs/tasks/
-!ai_docs/dev_templates/
+.gemini/
+ai_docs/
 __pycache__/
 
 pyproject.toml
@@ -25,9 +18,8 @@ pyproject.toml
 logs/
 
 requirements_simple.txt
-Flow_of_API_variables.md
 
 history.json
-task_prompts/
-
 config.json
+
+Varun Working Files/
