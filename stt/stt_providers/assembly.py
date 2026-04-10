@@ -34,7 +34,6 @@ class AssemblyAITranscriber(BaseTranscriber):
         self.ws: Optional[ClientConnection] = None
         self.message_thread: Optional[threading.Thread] = None
         self._connection_closed = True
-        self._audio_buffer = bytearray()
 
     def _message_handler(self) -> None:
         """Handles incoming messages from the WebSocket server."""
@@ -119,23 +118,12 @@ class AssemblyAITranscriber(BaseTranscriber):
         Sends raw PCM audio bytes to the connected WebSocket.
         """
         if self.ws and not self._stop_event.is_set() and utils.app_running.is_set() and not self._connection_closed:
-            self._audio_buffer.extend(audio_chunk)
-            
-            # AssemblyAI requires audio chunks to be between 50ms and 1000ms.
-            # For 16kHz, 16-bit, 1-channel audio, 100ms = 16000 * 2 * 0.1 = 3200 bytes.
-            chunk_size = 3200
-            
-            while len(self._audio_buffer) >= chunk_size:
-                chunk_to_send = bytes(self._audio_buffer[:chunk_size])
-                self._audio_buffer = self._audio_buffer[chunk_size:]
-                
-                try:
-                    self.ws.send(chunk_to_send)
-                except Exception as e:
-                    if utils.app_running.is_set() and not self._connection_closed:
-                        print(f"[STT Provider: AssemblyAI] Failed to send audio chunk: {e}")
-                    self._stop_event.set()
-                    break
+            try:
+                self.ws.send(audio_chunk)
+            except Exception as e:
+                if utils.app_running.is_set() and not self._connection_closed:
+                    print(f"[STT Provider: AssemblyAI] Failed to send audio chunk: {e}")
+                self._stop_event.set()
 
     def close_connection(self) -> None:
         """

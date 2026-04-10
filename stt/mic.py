@@ -99,10 +99,13 @@ def start_listening() -> None:
         silence_detector.start()
 
         # The context manager ensures hardware lock is released on exit/crash
+        # Setting blocksize to 100ms of frames to optimize network streaming latency
+        block_size = int(config.SAMPLE_RATE * 0.1)
         with sd.InputStream(
             samplerate=config.SAMPLE_RATE,
             channels=1,
             dtype="int16",
+            blocksize=block_size,
             callback=audio_callback,
         ):
             print(f"\n[App] Listening via {config.ACTIVE_STT_PROVIDER.name}... (Press Ctrl+C to stop)")
