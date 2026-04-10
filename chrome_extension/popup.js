@@ -227,8 +227,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function initialize() {
     // Theme setup
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "light";
     const themeRes = await chrome.storage.local.get(THEME_STORAGE_KEY);
-    applyTheme(themeRes[THEME_STORAGE_KEY] || "light");
+    const syncTheme = themeRes[THEME_STORAGE_KEY] || "light";
+    
+    if (syncTheme !== savedTheme) {
+      localStorage.setItem(THEME_STORAGE_KEY, syncTheme);
+      applyTheme(syncTheme);
+    } else {
+      themeToggle.checked = savedTheme === "dark";
+    }
 
     currentTabId = await getCurrentTabId();
     if (currentTabId) {
