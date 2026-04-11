@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+from .virtual_keyboard import VirtualKeyboard
 
 class BaseInjector(ABC):
     """
@@ -8,6 +8,9 @@ class BaseInjector(ABC):
     Any new injection method (e.g., Clipboard, UInput, XDO Tool)
     must inherit from this class and implement the `inject` method.
     """
+
+    def __init__(self, vkb: VirtualKeyboard):
+        self.vkb = vkb
 
     @abstractmethod
     def inject(self, text: str) -> bool:

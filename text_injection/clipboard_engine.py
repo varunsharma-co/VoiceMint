@@ -2,7 +2,6 @@ import time
 import pyperclip
 import subprocess
 import shutil
-from evdev import UInput
 from evdev import ecodes as e
 
 from config import (
@@ -12,6 +11,7 @@ from config import (
 )
 from utils import get_logger
 from .base import BaseInjector
+from .virtual_keyboard import VirtualKeyboard
 
 logger = get_logger(__name__)
 
@@ -21,23 +21,13 @@ class ClipboardInjector(BaseInjector):
     Clipboard-based text injection engine with a threaded chunked buffer.
     Accumulates incoming transcripts and bulk-pastes them using Shift+Insert 
     to prevent ghost pastes and handle non-standard punctuation.
+    Uses a shared VirtualKeyboard instance.
     """
 
-    def __init__(self):
+    def __init__(self, vkb: VirtualKeyboard):
+        super().__init__(vkb)
         self.buffer: str = ""
-        self.ui = None
-        try:
-            # Filter valid keys for the virtual device setup
-            valid_keys = [v for k, v in e.ecodes.items() if k.startswith("KEY_") and v < 256]
-            self.ui = UInput(events={e.EV_KEY: valid_keys}, name="voicemint-clipboard-keyboard")
-            time.sleep(0.5)  # Wait a moment for the OS to register the new device
-            logger.info("ClipboardInjector initialized successfully.")
-        except PermissionError:
-            logger.error("PermissionError: Access to /dev/uinput denied. Check udev rules.")
-            raise
-        except Exception as ex:
-            logger.error(f"Failed to initialize ClipboardInjector: {ex}")
-            raise
+        logger.info("ClipboardInjector initialized using shared VirtualKeyboard.")
 
     def _ends_with_punctuation(self, text: str) -> bool:
         """Checks if text ends with a terminal punctuation mark."""
@@ -116,8 +106,8 @@ class ClipboardInjector(BaseInjector):
         if not self.buffer.strip():
             return True
 
-        if not self.ui:
-            logger.error("Cannot flush: UInput device is not initialized.")
+        if not self.vkb or not self.vkb.ui:
+            logger.error("Cannot flush: VirtualKeyboard is not initialized.")
             return False
 
         payload = self.buffer.strip() + " "
@@ -140,14 +130,8 @@ class ClipboardInjector(BaseInjector):
             # 3. Wait
             time.sleep(0.05)
 
-            # 4. Paste (Shift + Insert)
-            self.ui.write(e.EV_KEY, e.KEY_LEFTSHIFT, 1)
-            self.ui.syn()
-            self.ui.write(e.EV_KEY, e.KEY_INSERT, 1)
-            self.ui.write(e.EV_KEY, e.KEY_INSERT, 0)
-            self.ui.syn()
-            self.ui.write(e.EV_KEY, e.KEY_LEFTSHIFT, 0)
-            self.ui.syn()
+            # 4. Paste (Shift + Insert) via VirtualKeyboard
+            self.vkb.simulate_shift_insert()
 
             # 5. Wait
             time.sleep(CLIPBOARD_RESTORE_DELAY_SEC)
@@ -172,8 +156,6 @@ class ClipboardInjector(BaseInjector):
         if self.buffer.strip():
             logger.info("Executing Cleanup Flush during close().")
             self.flush()
-
-        if self.ui:
-            self.ui.close()
-            self.ui = None
-            logger.info("ClipboardInjector closed and virtual device released.")
+        
+        # We don't close self.vkb here because it is shared
+        logger.info("ClipboardInjector closed.")
