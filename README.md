@@ -34,7 +34,7 @@ VoiceMint was engineered from the ground up to be as lightweight and unobtrusive
   * **Fallback (Clipboard):** For complex language character sets, the app falls back to a highly secure clipboard injection method. It backs up your current clipboard, pastes the API text using `Shift+Insert`, and instantly restores your original clipboard data, leaving your workflow untouched.
 * **Minimalist Dependencies:** To maintain the low-footprint ethos, I avoided heavy frameworks. Global keyboard shortcuts are handled natively via `pynput` (instead of messy bash scripts). The bridge between the Python backend and the Chrome Extension uses lightweight, native `websockets` rather than spinning up a bloated `FastAPI` server.
 * **Extensible Design (Facade & DRY Principles):** The core logic is hidden behind Abstract Base Classes (`BaseInjector`, `BaseTranscriber`). This makes the architecture highly extensible—adding a new STT provider or a future text injection method is as simple as writing a new subclass, strictly adhering to DRY (Don't Repeat Yourself) principles.
-* **Safe Teardown via Context Managers:** The creation of the `uinput` virtual keyboard and the management of audio streams utilize context managers and graceful thread events. Whether you toggle the mic on/off fifty times a day or close the app entirely, this guarantees that all virtual hardware is released and sockets are closed cleanly, preventing any system resource leakage.
+
 
 ## 🚀 Quick Start
 
