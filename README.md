@@ -1,8 +1,8 @@
 # 🎙️ Voice Mint (WisprFlow Alternative)
 
-I built this app because I wanted a truly native, lightweight, and highly accurate voice dictation tool for Linux Mint. 
+A lightweight and accurate voice typing app for Linux Mint Cinnamon that costs less than **$1 per month**. 
 
-There are popular tools like WhisperFlow, but not for Linux. Plus they cost like $20 per month. 
+There are popular tools like WhisperFlow out there, but not for Linux. Plus they cost like $20 per month. 
 
 VoiceMint solves this problem... 
 
