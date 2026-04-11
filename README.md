@@ -1,6 +1,8 @@
 # 🎙️ Voice Mint (WisprFlow Alternative)
 
-A lightweight and accurate voice typing app for Linux Mint Cinnamon that costs less than **$1 per month**. 
+A lightweight and accurate voice typing app for Linux Mint Cinnamon... 
+
+that costs less than **$1 per month**. 
 
 There are popular tools like WhisperFlow out there, but not for Linux. Plus they cost like $20 per month. 
 
@@ -12,7 +14,9 @@ VoiceMint solves this problem...
 
 It's incredibly affordable. 
 
-Based on my usage, API costs are around **$1** per month (and AssemblyAI even offers $50 in free credits to new users!). 
+Based on my usage, API costs are around **$1** per month 
+
+(and AssemblyAI even offers $50 in free credits to new users!). 
 
 I'm sharing this in hopes that it might be helpful to others in the Linux community looking for a seamless, budget-friendly voice-typing solution.
 
