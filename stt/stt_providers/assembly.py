@@ -18,7 +18,7 @@ ASSEMBLYAI_WS_BASE_URL = "wss://streaming.assemblyai.com/v3/ws"
 # Use this to pass additional query parameters during connection.
 # For example, if using v3, you might want to specify the speech model:
 # EXTRA_QUERY_PARAMS = {"speech_model": "u3-rt-pro"}
-EXTRA_QUERY_PARAMS = {"speech_model": "u3-rt-pro"}
+EXTRA_QUERY_PARAMS = {"speech_model": "universal-streaming-english"}
 # -------------------------------
 
 
