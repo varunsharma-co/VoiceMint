@@ -28,7 +28,7 @@ class SonioxTranscriber(BaseTranscriber):
         """Builds the configuration JSON for the Soniox API."""
         return {
             "api_key": self.api_key,
-            "model": "stt-rt-v4",
+            "model": "stt-rt-v5",
             "language_hints": ["en"],
             "enable_language_identification": False,
             "enable_speaker_diarization": False,
