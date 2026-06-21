@@ -78,6 +78,12 @@ class UInputInjector(BaseInjector):
             logger.error("Cannot inject: VirtualKeyboard is not initialized.")
             return False
 
+        # Ensure trailing space is present exactly once
+        text = text.rstrip(" ")
+        if not text:
+            return True
+        text += " "
+
         try:
             for char in text:
                 keycode, shift_required = self._get_keycode_and_shift(char)
