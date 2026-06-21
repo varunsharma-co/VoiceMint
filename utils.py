@@ -73,6 +73,9 @@ def get_logger(name: str) -> logging.Logger:
 # Controls the microphone loop, UI animations, and WebSocket connections.
 is_listening = threading.Event()
 
+# Tracks if the WebSocket connection is actively open.
+is_connected = threading.Event()
+
 # Global flag to keep the entire application running.
 # When cleared, all background threads should finish and the app should exit.
 app_running = threading.Event()

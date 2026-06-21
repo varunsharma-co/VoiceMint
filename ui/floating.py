@@ -37,7 +37,7 @@ class VoiceMintUI(tk.Tk):
 
         # UI state
         self.always_on_top = tk.BooleanVar(value=False)
-        self.is_active = False
+        self.current_state = "stopped"
 
         # Set default font for ttk
         style = ttk.Style()
@@ -131,18 +131,29 @@ class VoiceMintUI(tk.Tk):
             self.destroy()
             return
 
-        currently_active = utils.is_listening.is_set()
+        listening = utils.is_listening.is_set()
+        connected = utils.is_connected.is_set()
+
+        if listening and not connected:
+            state = "connecting"
+        elif listening and connected:
+            state = "listening"
+        else:
+            state = "stopped"
         
-        if currently_active != self.is_active:
-            self.is_active = currently_active
+        if self.current_state != state:
+            self.current_state = state
             self._update_status_display()
             
         self.after(100, self._poll_state)
         
     def _update_status_display(self):
-        if self.is_active:
+        if self.current_state == "listening":
             self.status_label.config(text="Status: Listening")
             self.indicator.config(bg="#2FA572")
+        elif self.current_state == "connecting":
+            self.status_label.config(text="Status: Connecting...")
+            self.indicator.config(bg="#F0AD4E")
         else:
             self.status_label.config(text="Status: Stopped")
             self.indicator.config(bg="#D9534F")

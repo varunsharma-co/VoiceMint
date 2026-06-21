@@ -25,6 +25,7 @@ RAM_DIR = "/dev/shm/voicemint_assets"
 
 ICON_ON = "icon-on-128.png"
 ICON_OFF = "icon-off-128.png"
+ICON_CONNECTING = "icon-connecting-128.png"
 SOUND_START = "start.wav"
 SOUND_STOP = "stop.wav"
 
@@ -44,6 +45,7 @@ class TrayManager:
         self.indicator = None
         self.ram_assets = {}
         self.is_active = False
+        self.is_connecting = False
         self.restore_callback = None
         
         # Load assets can stay here as it's just filesystem I/O
@@ -58,7 +60,7 @@ class TrayManager:
         """Copies assets to /dev/shm for zero-latency access, keeping fallback paths."""
         os.makedirs(RAM_DIR, exist_ok=True)
         
-        for filename in [ICON_ON, ICON_OFF, SOUND_START, SOUND_STOP]:
+        for filename in [ICON_ON, ICON_OFF, ICON_CONNECTING, SOUND_START, SOUND_STOP]:
             ssd_path = os.path.join(ASSETS_DIR, filename)
             ram_path = os.path.join(RAM_DIR, filename)
             
@@ -170,23 +172,21 @@ class TrayManager:
         Returns True if the state actually changes, False if redundant.
         """
         if activate:
-            if self.is_active:
-                self.show_notification("VoiceMint", "Voice typing is already active.", ICON_ON)
+            if self.is_active or self.is_connecting:
+                self.show_notification("VoiceMint", "Voice typing is already active or connecting.", ICON_ON)
                 return False
             else:
-                self.is_active = True
-                provider_name = config.ACTIVE_STT_PROVIDER.value.capitalize()
-                self.show_notification("VoiceMint Activated", f"Listening via {provider_name}...", ICON_ON)
-                self.play_sound(SOUND_START)
+                self.is_connecting = True
                 if self.indicator:
-                    GLib.idle_add(self.indicator.set_icon_full, self.ram_assets[ICON_ON], "Active")
+                    GLib.idle_add(self.indicator.set_icon_full, self.ram_assets[ICON_CONNECTING], "Connecting")
                 return True
         else:
-            if not self.is_active:
+            if not self.is_active and not self.is_connecting:
                 self.show_notification("VoiceMint", "Voice typing is already stopped.", ICON_OFF)
                 return False
             else:
                 self.is_active = False
+                self.is_connecting = False
                 if is_timeout:
                     self.show_notification("VoiceMint Deactivated", "Silence timeout reached. Stopped listening.", ICON_OFF)
                 else:
@@ -195,6 +195,17 @@ class TrayManager:
                 if self.indicator:
                     GLib.idle_add(self.indicator.set_icon_full, self.ram_assets[ICON_OFF], "Inactive")
                 return True
+
+    def set_listening_active(self):
+        """Called when the WebSocket successfully connects to finalize activation."""
+        if self.is_connecting:
+            self.is_connecting = False
+            self.is_active = True
+            provider_name = config.ACTIVE_STT_PROVIDER.value.capitalize()
+            self.show_notification("VoiceMint Activated", f"Listening via {provider_name}...", ICON_ON)
+            self.play_sound(SOUND_START)
+            if self.indicator:
+                GLib.idle_add(self.indicator.set_icon_full, self.ram_assets[ICON_ON], "Active")
 
     def run(self):
         """Starts the GTK main loop after ensuring initialization on the same thread."""

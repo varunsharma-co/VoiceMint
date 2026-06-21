@@ -1,5 +1,7 @@
 import sys
 import time
+import queue
+import threading
 from typing import Optional
 
 import sounddevice as sd
@@ -34,6 +36,8 @@ def stop_listening() -> None:
     if utils.is_listening.is_set():
         utils.is_listening.clear()
         
+    utils.is_connected.clear()
+    
     if _active_transcriber:
         # Forcefully close the connection to break any blocking WebSocket recv/send
         _active_transcriber.close_connection()
@@ -82,6 +86,8 @@ def start_listening() -> None:
         print(f"\n[App] Error initializing STT provider: {e}")
         return
 
+    audio_queue: queue.Queue[bytes] = queue.Queue()
+
     # 4. Define Audio Capture Callback
     def audio_callback(indata, frames, time_info, status) -> None:
         if status:
@@ -89,13 +95,34 @@ def start_listening() -> None:
         
         # Only forward audio if we are still active AND the app is running
         if utils.is_listening.is_set() and utils.app_running.is_set() and _active_transcriber:
-            _active_transcriber.send_audio_chunk(indata.tobytes())
+            audio_queue.put(indata.tobytes())
+
+    def send_loop() -> None:
+        while utils.is_listening.is_set() and utils.app_running.is_set():
+            try:
+                # 100ms timeout lets us periodically check the is_listening flag
+                chunk = audio_queue.get(timeout=0.1)
+                if _active_transcriber:
+                    _active_transcriber.send_audio_chunk(chunk)
+            except queue.Empty:
+                continue
+            except Exception as ex:
+                if utils.is_listening.is_set() and utils.app_running.is_set():
+                    print(f"[Audio Sender] Error sending audio chunk: {ex}")
 
     # 5. Start Execution Loop
     utils.is_listening.set()
+    utils.is_connected.clear()
     
     try:
         _active_transcriber.start_connection(config.SAMPLE_RATE)
+        utils.is_connected.set()
+        from ui.tray import get_tray_manager
+        get_tray_manager().set_listening_active()
+        
+        # Spawn the background network sender thread
+        threading.Thread(target=send_loop, daemon=True).start()
+        
         silence_detector.start()
 
         # The context manager ensures hardware lock is released on exit/crash
@@ -119,9 +146,12 @@ def start_listening() -> None:
         stop_listening()
     except Exception as e:
         print(f"\n[App] A critical error occurred: {e}")
+        from ui.tray import get_tray_manager
+        get_tray_manager().handle_activation_request(activate=False)
         stop_listening()
     finally:
         # 6. Teardown
+        utils.is_connected.clear()
         silence_detector.cancel()
         if _active_transcriber:
             _active_transcriber.close_connection()
