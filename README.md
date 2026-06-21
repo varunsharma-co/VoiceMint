@@ -16,6 +16,11 @@
 
 ---
 
+> [!NOTE]
+> **Update:** 
+> - **Producer-Consumer Audio Queue:** Decoupled hardware audio recording from network streaming. Temporary network latency spikes are buffered seamlessly in memory, preventing dropped frames (input overflows) during long dictations.
+> - **Three-State Visual Feedback:** Added a connection-aware transition state (Connecting 🟡 / Listening 🟢 / Stopped 🔴) in both the system tray and the floating UI, giving immediate feedback while the WebSocket connection is resolving.
+
 ### 💡 Introduction
 
 There are popular tools like WisprFlow out there, but not for Linux. Plus they cost like $20 per month.
