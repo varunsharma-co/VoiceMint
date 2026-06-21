@@ -104,6 +104,15 @@ CLIPBOARD_RESTORE_DELAY_SEC = float(_current_config["CLIPBOARD_RESTORE_DELAY_SEC
 # --- LOGGING SETTINGS ---
 LOG_KEEP_DAYS = int(_current_config.get("LOG_KEEP_DAYS", 7))
 
+# =====================================================================
+# SPEECH_ENDPOINT_DELAY_MS
+# The pause duration (in milliseconds) the Speech-to-Text server waits
+# after you stop speaking before deciding you have finished a sentence
+# and finalizing the text injection.
+# Range: 500 ms to 3000 ms.
+# =====================================================================
+SPEECH_ENDPOINT_DELAY_MS = 1000
+
 # --- SECRETS & API KEYS ---
 _SONIOX_API_KEY = os.getenv("SONIOX_API_KEY")
 _DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")

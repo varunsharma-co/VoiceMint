@@ -6,6 +6,7 @@ from websockets.exceptions import ConnectionClosed
 from websockets.sync.client import connect, ClientConnection
 
 import utils
+import config
 from .base import BaseTranscriber, TranscriptCallback
 
 SONIOX_WEBSOCKET_URL = "wss://stt-rt.soniox.com/transcribe-websocket"
@@ -33,6 +34,7 @@ class SonioxTranscriber(BaseTranscriber):
             "enable_language_identification": False,
             "enable_speaker_diarization": False,
             "enable_endpoint_detection": True,
+            "max_endpoint_delay_ms": config.SPEECH_ENDPOINT_DELAY_MS,
             "audio_format": "pcm_s16le",
             "sample_rate": sample_rate,
             "num_channels": 1,

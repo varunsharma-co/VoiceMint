@@ -7,6 +7,7 @@ from websockets.exceptions import ConnectionClosed
 from websockets.sync.client import connect, ClientConnection
 
 import utils
+import config
 from .base import BaseTranscriber, TranscriptCallback
 
 # --- CONFIGURATION VARIABLES ---
@@ -96,7 +97,10 @@ class AssemblyAITranscriber(BaseTranscriber):
         self._connection_closed = False
         
         # Construct URL with query parameters
-        params = {"sample_rate": sample_rate}
+        params = {
+            "sample_rate": sample_rate,
+            "end_utterance_silence_threshold": config.SPEECH_ENDPOINT_DELAY_MS
+        }
         params.update(EXTRA_QUERY_PARAMS)
         url = f"{ASSEMBLYAI_WS_BASE_URL}?{urlencode(params)}"
         
