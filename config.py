@@ -110,6 +110,7 @@ LOG_KEEP_DAYS = int(_current_config.get("LOG_KEEP_DAYS", 7))
 # after you stop speaking before deciding you have finished a sentence
 # and finalizing the text injection.
 # Range: 500 ms to 3000 ms.
+# This variable is NOT being used in config.json file
 # =====================================================================
 SPEECH_ENDPOINT_DELAY_MS = 1000
 
