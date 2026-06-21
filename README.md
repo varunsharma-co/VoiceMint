@@ -18,8 +18,8 @@
 
 > [!NOTE]
 > **Update:** 
-> - **Producer-Consumer Audio Queue:** Decoupled hardware audio recording from network streaming. Temporary network latency spikes are buffered seamlessly in memory, preventing dropped frames (input overflows) during long dictations.
-> - **Three-State Visual Feedback:** Added a connection-aware transition state (Connecting 🟡 / Listening 🟢 / Stopped 🔴) in both the system tray and the floating UI, giving immediate feedback while the WebSocket connection is resolving.
+> - **No More Dropped Words:** Recording process is now decoupled from network I/O. Mic input is buffered in memory before sending, preventing dropped words during long dictations or slow network connections.
+> - **New Status Indicators:** The system tray and app window now both show when the app is connecting (yellow 🟡), fully connected and listening (green 🟢), or stopped (red 🔴).
 
 ### 💡 Introduction
 
