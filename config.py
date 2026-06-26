@@ -114,6 +114,21 @@ LOG_KEEP_DAYS = int(_current_config.get("LOG_KEEP_DAYS", 7))
 # =====================================================================
 SPEECH_ENDPOINT_DELAY_MS = 1000
 
+# =====================================================================
+# WEBSOCKET KEEPALIVE SETTINGS
+# Under multi-threaded GIL contention or high network latency, client-side
+# keepalive pings can timeout and proactively drop the connection.
+#
+# - WEBSOCKET_PING_INTERVAL: How often (in seconds) the client sends a
+#   keepalive ping frame to the server (e.g., 20). Set to None to disable.
+# - WEBSOCKET_PING_TIMEOUT: How long (in seconds) the client waits for
+#   the server's pong response before timing out (e.g., 30).
+#
+# These variables are NOT being used in config.json file.
+# =====================================================================
+WEBSOCKET_PING_INTERVAL = 20
+WEBSOCKET_PING_TIMEOUT = 30
+
 # --- SECRETS & API KEYS ---
 _SONIOX_API_KEY = os.getenv("SONIOX_API_KEY")
 _DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")

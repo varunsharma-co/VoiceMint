@@ -106,7 +106,12 @@ class AssemblyAITranscriber(BaseTranscriber):
         
         try:
             # AssemblyAI authenticates via the Authorization header
-            self.ws = connect(url, additional_headers={"Authorization": self.api_key})
+            self.ws = connect(
+                url,
+                additional_headers={"Authorization": self.api_key},
+                ping_interval=config.WEBSOCKET_PING_INTERVAL,
+                ping_timeout=config.WEBSOCKET_PING_TIMEOUT,
+            )
             print(f"[STT Provider: AssemblyAI] Connected via WebSocket.")
             
             # Start background thread to listen for server responses

@@ -115,7 +115,11 @@ class SonioxTranscriber(BaseTranscriber):
         self._connection_closed = False
         
         try:
-            self.ws = connect(SONIOX_WEBSOCKET_URL)
+            self.ws = connect(
+                SONIOX_WEBSOCKET_URL,
+                ping_interval=config.WEBSOCKET_PING_INTERVAL,
+                ping_timeout=config.WEBSOCKET_PING_TIMEOUT,
+            )
             config_json = self._get_config(sample_rate)
             self.ws.send(json.dumps(config_json))
             
