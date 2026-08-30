@@ -102,7 +102,7 @@ class SettingsPanel(tk.Toplevel):
         ttk.Label(self.tab_app, text="STT Provider:").grid(row=0, column=0, padx=(0, PAD_X), pady=PAD_Y, sticky=tk.W)
         stt_val = self.current_config.get("ACTIVE_STT_PROVIDER", "soniox").capitalize()
         self.stt_var = tk.StringVar(value=stt_val)
-        self.stt_menu = ttk.Combobox(self.tab_app, textvariable=self.stt_var, values=["Soniox", "Deepgram", "Assemblyai"], state="readonly")
+        self.stt_menu = ttk.Combobox(self.tab_app, textvariable=self.stt_var, values=["Soniox", "Modulate", "Assemblyai"], state="readonly")
         self.stt_menu.grid(row=0, column=1, pady=PAD_Y, sticky=tk.EW)
 
         ttk.Label(self.tab_app, text="Injection Method:").grid(row=1, column=0, padx=(0, PAD_X), pady=PAD_Y, sticky=tk.W)

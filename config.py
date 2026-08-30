@@ -12,7 +12,7 @@ class STTProvider(Enum):
     """Enumeration of supported real-time Speech-to-Text APIs."""
 
     SONIOX = "soniox"
-    DEEPGRAM = "deepgram"
+    MODULATE = "modulate"
     ASSEMBLYAI = "assemblyai"
 
 
@@ -131,11 +131,11 @@ WEBSOCKET_PING_TIMEOUT = 30
 
 # --- SECRETS & API KEYS ---
 _SONIOX_API_KEY = os.getenv("SONIOX_API_KEY")
-_DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
+_MODULATE_API_KEY = os.getenv("MODULATE_API_KEY")
 _ASSEMBLYAI_API_KEY = os.getenv("ASSEMBLYAI_API_KEY")
 
 STT_API_KEYS = {
     STTProvider.SONIOX: _SONIOX_API_KEY,
-    STTProvider.DEEPGRAM: _DEEPGRAM_API_KEY,
+    STTProvider.MODULATE: _MODULATE_API_KEY,
     STTProvider.ASSEMBLYAI: _ASSEMBLYAI_API_KEY,
 }

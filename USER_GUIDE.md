@@ -15,11 +15,12 @@ Before running the application, you must set up your API keys. VoiceMint relies 
 
 ```env
 SONIOX_API_KEY=your_soniox_key_here
+MODULATE_API_KEY=your_modulate_key_here
 ASSEMBLYAI_API_KEY=your_assemblyai_key_here
 GEMINI_API_KEY=your_gemini_key_here
 ```
 
-*Note: You only need to provide keys for the specific STT and LLM services you actually plan to use. Deepgram is currently not enabled by default.*
+*Note: You only need to provide keys for the specific STT and LLM services you actually plan to use.*
 
 ---
 
