@@ -31,6 +31,10 @@ class TranscriptPrinter:
         self._write("\n")
         self._line_open = False
 
+    def error(self, text: str) -> None:
+        self.end_partial_line()
+        self._write(f"{text}\n")
+
     def _write(self, text: str) -> None:
         self._writer.write(text)
         self._writer.flush()

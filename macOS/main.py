@@ -11,10 +11,18 @@ from session import DictationSession
 from soniox import SonioxSocket
 
 
-def main() -> int:
-    app_dir = Path(__file__).resolve().parent
+def read_soniox_api_key(app_dir: Path) -> str:
+    """Load SONIOX_API_KEY from the env file in `app_dir`.
+
+    The path is the app directory, so the working directory does not matter.
+    An already-set environment variable is left as it is.
+    """
     load_dotenv(app_dir / ".env")
-    api_key = os.environ.get("SONIOX_API_KEY", "")
+    return os.environ.get("SONIOX_API_KEY", "")
+
+
+def main() -> int:
+    api_key = read_soniox_api_key(Path(__file__).resolve().parent)
     session = DictationSession(
         api_key=api_key,
         audio=DefaultMicrophone(),
