@@ -1,0 +1,30 @@
+
+voicemint/
+
+GEMINI.md
+
+.env
+
+.aiexclude
+.geminiignore
+
+.gemini/
+ai_docs/
+__pycache__/
+
+pyproject.toml
+
+logs/
+
+requirements_simple.txt
+
+history.json
+config.json
+
+Varun Working Files/
+desktop_app_VARUN/
+
+VoiceMint Demo.mkv
+IMPORTANT_tweak_for_later.txt
+
+.agents/
