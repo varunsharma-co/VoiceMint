@@ -183,10 +183,16 @@ class DictationSession:
     def _report_audio_warnings(self) -> None:
         """Print each pending status warning and put the open transcript line back."""
         while True:
-            warning = self._audio.take_warning()
-            if not warning:
+            raw = self._audio.take_warning()
+            if not raw:
                 return
-            print(f"\r{warning}", file=sys.stderr, flush=True)
+            warning = _one_line(raw)
+            if not warning:
+                continue
+            # Clear to the end of the line. A short warning must not leave the
+            # tail of a longer partial in the scrollback when stderr shares the cursor.
+            sys.stderr.write(f"\r{warning}\x1b[K\n")
+            sys.stderr.flush()
             self._printer.redraw()
 
     def _send_failure_exit_code(self) -> int | None:

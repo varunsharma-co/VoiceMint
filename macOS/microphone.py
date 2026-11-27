@@ -9,10 +9,6 @@ from constants import CHANNELS, FRAMES_PER_BLOCK, SAMPLE_RATE
 from session import MicrophoneOpenError
 
 
-def _one_line(value: object) -> str:
-    return " ".join(str(value).split())
-
-
 class DefaultMicrophone:
     """System default input. Open it on the main thread so macOS can show the permission dialog."""
 
@@ -46,7 +42,7 @@ class DefaultMicrophone:
             opened_name = str(sd.query_devices(stream.device)["name"])
         except Exception as exc:
             self.close()
-            raise MicrophoneOpenError(device_name, _one_line(exc)) from exc
+            raise MicrophoneOpenError(device_name, str(exc)) from exc
         return opened_name
 
     def take_warning(self) -> str | None:
@@ -56,16 +52,8 @@ class DefaultMicrophone:
             return None
 
     def _discard_pending(self) -> None:
-        while True:
-            try:
-                self._chunks.get_nowait()
-            except queue.Empty:
-                break
-        while True:
-            try:
-                self._warnings.get_nowait()
-            except queue.Empty:
-                return
+        _drain(self._chunks)
+        _drain(self._warnings)
 
     def read(self, timeout: float) -> bytes | None:
         try:
@@ -99,10 +87,16 @@ class DefaultMicrophone:
         if not self._running:
             return
         if status:
-            warning = " ".join(str(status).split())
-            if warning:
-                self._warnings.put(warning)
+            self._warnings.put(str(status))
         self._chunks.put(indata.tobytes())
+
+
+def _drain(pending: queue.Queue) -> None:
+    while True:
+        try:
+            pending.get_nowait()
+        except queue.Empty:
+            return
 
 
 def _default_input_name() -> str:

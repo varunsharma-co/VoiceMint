@@ -369,7 +369,16 @@ class _WarnAfterPartial(ScriptedSocket):
     def __init__(self, audio: ScriptedAudio) -> None:
         super().__init__(
             incoming=[
-                json.dumps({"tokens": [{"text": "Hello", "is_final": False}]}),
+                json.dumps(
+                    {
+                        "tokens": [
+                            {
+                                "text": "Hello there, this line is longer than the warning",
+                                "is_final": False,
+                            }
+                        ]
+                    }
+                ),
                 KeyboardInterrupt(),
             ]
         )
@@ -391,12 +400,10 @@ class StatusWarningTest(unittest.TestCase):
         with contextlib.redirect_stderr(stderr):
             code, output = run_session("test-key", audio, socket)
 
+        partial = "\rHello there, this line is longer than the warning\x1b[K"
         self.assertEqual(code, 0)
-        self.assertEqual(stderr.getvalue(), "\rinput overflow\n")
-        self.assertEqual(
-            output,
-            _LISTENING + "\rHello\x1b[K" + "\rHello\x1b[K\n",
-        )
+        self.assertEqual(stderr.getvalue(), "\rinput overflow\x1b[K\n")
+        self.assertEqual(output, _LISTENING + partial + partial + "\n")
         self.assertGreaterEqual(audio.close_calls, 1)
         self.assertGreaterEqual(socket.close_calls, 1)
 
