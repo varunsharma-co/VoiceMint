@@ -4,9 +4,10 @@ import contextlib
 import io
 import json
 import threading
+import time
 import unittest
 
-from session import AudioSource, ByteSocket, DictationSession
+from session import AudioSource, ByteSocket, DictationSession, MicrophoneOpenError
 
 _LISTENING = "Listening on Test Input. Ctrl+C stops the session.\n"
 
@@ -16,12 +17,16 @@ class ScriptedAudio:
 
     def __init__(self, chunks: list[bytes] | None = None) -> None:
         self._chunks = list(chunks or [])
+        self._warnings: list[str] = []
         self._closed = threading.Event()
         self.open_calls = 0
         self.close_calls = 0
+        self.fail_open: BaseException | None = None
 
     def open(self) -> str:
         self.open_calls += 1
+        if self.fail_open is not None:
+            raise self.fail_open
         return "Test Input"
 
     def read(self, timeout: float) -> bytes | None:
@@ -29,6 +34,17 @@ class ScriptedAudio:
             return self._chunks.pop(0)
         self._closed.wait(timeout)
         return None
+
+    def take_warning(self) -> str | None:
+        if not self._warnings:
+            return None
+        return self._warnings.pop(0) or None
+
+    def enqueue(self, chunk: bytes) -> None:
+        self._chunks.append(chunk)
+
+    def enqueue_warning(self, warning: str) -> None:
+        self._warnings.append(warning)
 
     def close(self) -> None:
         self.close_calls += 1
@@ -345,6 +361,174 @@ class CloseAlreadyStartedTest(unittest.TestCase):
         self.assertEqual(socket.connect_calls, 1)
         self.assertGreaterEqual(audio.close_calls, 1)
         self.assertGreaterEqual(socket.close_calls, 1)
+
+
+class _WarnAfterPartial(ScriptedSocket):
+    """Arms a PortAudio warning once the partial transcript message is delivered."""
+
+    def __init__(self, audio: ScriptedAudio) -> None:
+        super().__init__(
+            incoming=[
+                json.dumps({"tokens": [{"text": "Hello", "is_final": False}]}),
+                KeyboardInterrupt(),
+            ]
+        )
+        self._audio = audio
+
+    def receive_text(self, timeout: float) -> str | None:
+        message = super().receive_text(timeout)
+        if isinstance(message, str) and "Hello" in message:
+            self._audio.enqueue_warning("input overflow")
+        return message
+
+
+class StatusWarningTest(unittest.TestCase):
+    def test_portaudio_warning_is_written_to_stderr_and_the_transcript_line_is_redrawn(self) -> None:
+        audio = ScriptedAudio()
+        socket = _WarnAfterPartial(audio)
+        stderr = io.StringIO()
+
+        with contextlib.redirect_stderr(stderr):
+            code, output = run_session("test-key", audio, socket)
+
+        self.assertEqual(code, 0)
+        self.assertEqual(stderr.getvalue(), "\rinput overflow\n")
+        self.assertEqual(
+            output,
+            _LISTENING + "\rHello\x1b[K" + "\rHello\x1b[K\n",
+        )
+        self.assertGreaterEqual(audio.close_calls, 1)
+        self.assertGreaterEqual(socket.close_calls, 1)
+
+
+class _StallFirstSend(ScriptedSocket):
+    """Holds the first audio frame until `release` so more audio can be captured."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._held = False
+        self.stalled = threading.Event()
+        self.release = threading.Event()
+
+    def send_bytes(self, data: bytes) -> None:
+        if not self._held:
+            self._held = True
+            self.stalled.set()
+            if not self.release.wait(timeout=2):
+                raise TimeoutError("send stall was not released")
+        self.payloads.append(data)
+
+    def receive_text(self, timeout: float) -> str | None:
+        self.receive_calls += 1
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if len(self.payloads) >= 2:
+                raise KeyboardInterrupt()
+            time.sleep(0.01)
+        if len(self.payloads) >= 2:
+            raise KeyboardInterrupt()
+        if self.receive_calls > 5:
+            raise RuntimeError("session kept listening with nothing left to receive")
+        return None
+
+
+def _capture_during_stall(audio: ScriptedAudio, socket: _StallFirstSend) -> None:
+    if not socket.stalled.wait(timeout=2):
+        return
+    audio.enqueue(b"during")
+    socket.release.set()
+
+
+class SendStallTest(unittest.TestCase):
+    def test_audio_captured_during_a_send_stall_is_still_sent(self) -> None:
+        audio = ScriptedAudio(chunks=[b"before"])
+        socket = _StallFirstSend()
+        worker = threading.Thread(target=_capture_during_stall, args=(audio, socket))
+        worker.start()
+        try:
+            code, _output = run_session("test-key", audio, socket)
+        finally:
+            socket.release.set()
+            worker.join(timeout=2)
+
+        self.assertFalse(worker.is_alive())
+        self.assertEqual(code, 0)
+        self.assertEqual(socket.payloads, [b"before", b"during"])
+
+
+class FormatRejectionTest(unittest.TestCase):
+    def test_rejected_format_prints_the_device_and_portaudio_error_closes_the_socket_and_exits(self) -> None:
+        audio = ScriptedAudio()
+        audio.fail_open = MicrophoneOpenError(
+            "MacBook Pro Microphone",
+            "Invalid sample rate [PaErrorCode -9997]",
+        )
+        socket = ScriptedSocket()
+
+        code, output = run_session("test-key", audio, socket)
+
+        self.assertEqual(code, 1)
+        self.assertEqual(
+            output,
+            "Could not open MacBook Pro Microphone: "
+            "Invalid sample rate [PaErrorCode -9997]\n",
+        )
+        self.assertEqual(socket.connect_calls, 1)
+        self.assertGreaterEqual(socket.close_calls, 1)
+        self.assertEqual(audio.open_calls, 1)
+        self.assertGreaterEqual(audio.close_calls, 1)
+
+
+class _RaiseOnLaterClose(ScriptedAudio):
+    """The second close is the failure a repeated shutdown must not surface."""
+
+    def close(self) -> None:
+        super().close()
+        if self.close_calls > 1:
+            raise RuntimeError("second microphone close")
+
+
+class _SocketRaisesOnLaterClose(ScriptedSocket):
+    def close(self) -> None:
+        super().close()
+        if self.close_calls > 1:
+            raise RuntimeError("second socket close")
+
+
+class SecondRunTest(unittest.TestCase):
+    def test_second_run_after_a_clean_stop_opens_the_microphone_again(self) -> None:
+        audio = ScriptedAudio()
+        first = ScriptedSocket(incoming=[KeyboardInterrupt()])
+
+        code, _output = run_session("test-key", audio, first)
+
+        self.assertEqual(code, 0)
+        self.assertGreaterEqual(audio.close_calls, 1)
+
+        second = ScriptedSocket(incoming=[KeyboardInterrupt()])
+        code, output = run_session("test-key", audio, second)
+
+        self.assertEqual(code, 0)
+        self.assertEqual(output, _LISTENING)
+        self.assertEqual(audio.open_calls, 2)
+        self.assertGreaterEqual(audio.close_calls, 2)
+
+
+class DoubleShutdownTest(unittest.TestCase):
+    def test_shutting_the_session_down_twice_does_not_raise(self) -> None:
+        audio = _RaiseOnLaterClose()
+        socket = _SocketRaisesOnLaterClose(
+            incoming=[KeyboardInterrupt(), KeyboardInterrupt()]
+        )
+
+        first_code, _first_output = run_session("test-key", audio, socket)
+        second_code, second_output = run_session("test-key", audio, socket)
+
+        self.assertEqual(first_code, 0)
+        self.assertEqual(second_code, 0)
+        self.assertEqual(second_output, _LISTENING)
+        self.assertGreaterEqual(audio.close_calls, 2)
+        self.assertGreaterEqual(socket.close_calls, 2)
 
 
 class QuietRoomTest(unittest.TestCase):

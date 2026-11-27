@@ -1,6 +1,7 @@
 """Dictation session: the only behavioral boundary between the terminal and the ports."""
 
 import json
+import sys
 import threading
 from typing import Protocol, TextIO
 
@@ -18,12 +19,28 @@ def _one_line(value: object) -> str:
     return " ".join(str(value).split())
 
 
+class MicrophoneOpenError(Exception):
+    """The default input rejected the capture format."""
+
+    def __init__(self, device_name: str, portaudio_error: str) -> None:
+        self.device_name = device_name
+        self.portaudio_error = portaudio_error
+        super().__init__(f"{device_name}: {portaudio_error}")
+
+
 class AudioSource(Protocol):
     def open(self) -> str:
-        """Open the input and return the device name."""
+        """Open the input and return the device name.
+
+        Raise `MicrophoneOpenError` when the device rejects the capture format.
+        `device_name` and `portaudio_error` are the two facts the session prints.
+        """
 
     def read(self, timeout: float) -> bytes | None:
         """Return the next PCM block, or None when the wait expires."""
+
+    def take_warning(self) -> str | None:
+        """Return one pending PortAudio status warning, or None."""
 
     def close(self) -> None:
         """Release the input. Must be safe to call more than once."""
@@ -84,7 +101,14 @@ class DictationSession:
                 self._printer.error(f"Could not reach Soniox: {_one_line(exc)}")
                 return 1
 
-            device_name = self._audio.open()
+            try:
+                device_name = self._audio.open()
+            except MicrophoneOpenError as exc:
+                self._printer.error(
+                    f"Could not open {exc.device_name}: {_one_line(exc.portaudio_error)}"
+                )
+                return 1
+
             self._printer.listening(device_name)
             sender = threading.Thread(
                 target=self._send_audio,
@@ -96,6 +120,7 @@ class DictationSession:
                 send_exit = self._send_failure_exit_code()
                 if send_exit is not None:
                     return send_exit
+                self._report_audio_warnings()
                 try:
                     incoming = self._socket.receive_text(RECEIVE_TIMEOUT_SECONDS)
                 except Exception as exc:
@@ -154,6 +179,15 @@ class DictationSession:
                 self._send_error = exc
                 self._send_failed.set()
                 return
+
+    def _report_audio_warnings(self) -> None:
+        """Print each pending status warning and put the open transcript line back."""
+        while True:
+            warning = self._audio.take_warning()
+            if not warning:
+                return
+            print(f"\r{warning}", file=sys.stderr, flush=True)
+            self._printer.redraw()
 
     def _send_failure_exit_code(self) -> int | None:
         """1 after printing the upload error, or None while the upload is healthy."""
