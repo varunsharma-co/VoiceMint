@@ -1,5 +1,7 @@
-# Local agent skills
+# Local agent skills and docs
 .agents/
+docs/
+docs/
 
 # Secrets. Examples stay tracked.
 .env
@@ -21,10 +23,13 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Virtual environments, wherever the app is checked out
-.venv/
-venv/
+.venv*/
+venv*/
 env/
 ENV/
+
+# Temporary local tests
+tests/
 
 # Test, type-check, and lint caches
 .pytest_cache/
