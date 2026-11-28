@@ -270,6 +270,33 @@ class SendFailureTest(unittest.TestCase):
         self.assertGreaterEqual(socket.close_calls, 1)
 
 
+class TranscriptLinesTest(unittest.TestCase):
+    def test_partials_redraw_one_line_and_each_final_starts_the_next_line(self) -> None:
+        audio = ScriptedAudio()
+        socket = ScriptedSocket(
+            incoming=[
+                json.dumps({"tokens": [{"text": "hi, how are", "is_final": False}]}),
+                json.dumps({"tokens": [{"text": "hi, how are you", "is_final": False}]}),
+                json.dumps({"tokens": [{"text": "hi, how are you?", "is_final": True}]}),
+                json.dumps({"tokens": [{"text": "next thought", "is_final": False}]}),
+                KeyboardInterrupt(),
+            ]
+        )
+
+        code, output = run_session("test-key", audio, socket)
+
+        self.assertEqual(code, 0)
+        self.assertEqual(
+            output,
+            _LISTENING
+            + "\r[PARTIAL] hi, how are\x1b[K"
+            + "\r[PARTIAL] hi, how are you\x1b[K"
+            + "\n[FINAL] hi, how are you?\n\n"
+            + "\r[PARTIAL] next thought\x1b[K"
+            + "\n",
+        )
+
+
 class FinishedMessageTest(unittest.TestCase):
     def test_finished_applies_tokens_in_that_message_then_exits_successfully(self) -> None:
         audio = ScriptedAudio()
@@ -292,7 +319,7 @@ class FinishedMessageTest(unittest.TestCase):
         code, output = run_session("test-key", audio, socket)
 
         self.assertEqual(code, 0)
-        self.assertEqual(output, _LISTENING + "\rHello there\x1b[K\n")
+        self.assertEqual(output, _LISTENING + "[FINAL] Hello there\n\n")
         self.assertNotIn("EXTRA", output)
         self.assertEqual(socket.receive_calls, 1)
         self.assertEqual(socket.connect_calls, 1)
@@ -314,7 +341,7 @@ class FinishedMessageTest(unittest.TestCase):
         code, output = run_session("test-key", audio, socket)
 
         self.assertEqual(code, 0)
-        self.assertEqual(output, _LISTENING + "\rstill talking\x1b[K\n")
+        self.assertEqual(output, _LISTENING + "\r[PARTIAL] still talking\x1b[K\n")
         self.assertEqual(socket.receive_calls, 1)
 
 
@@ -400,7 +427,7 @@ class StatusWarningTest(unittest.TestCase):
         with contextlib.redirect_stderr(stderr):
             code, output = run_session("test-key", audio, socket)
 
-        partial = "\rHello there, this line is longer than the warning\x1b[K"
+        partial = "\r[PARTIAL] Hello there, this line is longer than the warning\x1b[K"
         self.assertEqual(code, 0)
         self.assertEqual(stderr.getvalue(), "\rinput overflow\x1b[K\n")
         self.assertEqual(output, _LISTENING + partial + partial + "\n")

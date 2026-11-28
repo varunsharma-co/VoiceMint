@@ -1,8 +1,10 @@
-"""Terminal transcript. Partials redraw one line; finals stay in the scrollback."""
+"""Terminal transcript. Partials redraw one line; each final is the next line."""
 
 from typing import TextIO
 
 _CLEAR_TO_END = "\x1b[K"
+_PARTIAL = "[PARTIAL] "
+_FINAL = "[FINAL] "
 
 
 class TranscriptPrinter:
@@ -18,15 +20,19 @@ class TranscriptPrinter:
         if text == "":
             return
         self._partial = text
-        self._write(f"\r{text}{_CLEAR_TO_END}")
+        self._write(f"\r{_PARTIAL}{text}{_CLEAR_TO_END}")
         self._line_open = True
 
     def final_utterance(self, text: str) -> None:
         if text == "":
             return
+        # Leave the latest partial in the scrollback, then print the final
+        # underneath it and leave a blank line for the next utterance.
+        if self._line_open:
+            self._write("\n")
         self._partial = ""
-        self._write(f"\r{text}{_CLEAR_TO_END}\n")
         self._line_open = False
+        self._write(f"{_FINAL}{text}\n\n")
 
     def end_partial_line(self) -> None:
         if not self._line_open:
@@ -39,7 +45,7 @@ class TranscriptPrinter:
         """Rewrite the open partial so a stderr warning does not leave it torn."""
         if not self._line_open or self._partial == "":
             return
-        self._write(f"\r{self._partial}{_CLEAR_TO_END}")
+        self._write(f"\r{_PARTIAL}{self._partial}{_CLEAR_TO_END}")
 
     def error(self, text: str) -> None:
         self.end_partial_line()
